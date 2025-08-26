@@ -1,0 +1,42 @@
+{
+  "name": "Algorithms Development Environment",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.autopep8",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "cschlosser.doxdocgen",
+        "ms-vscode.hexeditor",
+        "ms-vscode.makefile-tools",
+        "formulahendry.code-runner",
+        "anysphere.cpptools",
+        "redhat.vscode-yaml",
+        "Gruntfuggly.todo-tree",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.formatting.provider": "autopep8",
+        "python.formatting.autopep8Args": [
+          "--indent-size=2",
+          "--max-line-length=88"
+        ],
+        "C_Cpp.formatting": "clangFormat",
+        "C_Cpp.clang_format_style": "Google",
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "files.associations": {
+          "*.c": "c",
+          "*.h": "c"
+        }
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}
