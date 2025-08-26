@@ -9,4 +9,3 @@ AllowShortFunctionsOnASingleLine: Empty
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignTrailingComments: true
-InsertNewlineAtEOF: true

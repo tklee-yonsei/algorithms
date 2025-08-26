@@ -27,6 +27,11 @@ RUN apt-get update && apt-get install -y \
     gdb \
     && rm -rf /var/lib/apt/lists/*
 
+# Clangd 설치
+RUN apt-get update && apt-get install -y \
+    clangd \
+    && rm -rf /var/lib/apt/lists/*
+
 # Python 설치
 RUN apt-get update && apt-get install -y \
     python3 \
