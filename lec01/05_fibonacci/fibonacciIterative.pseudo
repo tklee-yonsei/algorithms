@@ -1,0 +1,16 @@
+// fibonacciIterative.pseudo
+함수 fibonacciIterative(n):
+  시작
+    if n <= 1:
+      n을 반환
+    
+    a = 0
+    b = 1
+    
+    for i = 2 to n:
+      temp = a + b
+      a = b
+      b = temp
+    
+    b를 반환
+  끝
