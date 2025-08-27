@@ -19,7 +19,7 @@ def create_animations_with_same_data():
   random_arr = base_data.copy()
   random.shuffle(random_arr)
   print(f"랜덤 배열: {random_arr}")
-  create_animation_for_data(random_arr, 'random_array.gif')
+  create_animation_for_data(random_arr, 'img/random_array.gif')
 
   # 2. 거의 정렬된 배열 (기본 데이터에서 몇 개만 교환)
   print(f"\n2. 거의 정렬된 배열 애니메이션 생성 중...")
@@ -30,14 +30,14 @@ def create_animations_with_same_data():
     j = random.randint(0, 9)
     nearly_sorted_arr[i], nearly_sorted_arr[j] = nearly_sorted_arr[j], nearly_sorted_arr[i]
   print(f"거의 정렬된 배열: {nearly_sorted_arr}")
-  create_animation_for_data(nearly_sorted_arr, 'nearly_sorted.gif')
+  create_animation_for_data(nearly_sorted_arr, 'img/nearly_sorted.gif')
 
   # 3. 역순 배열 (기본 데이터를 역순으로)
   print(f"\n3. 역순 배열 애니메이션 생성 중...")
   reversed_arr = base_data.copy()
   reversed_arr.reverse()
   print(f"역순 배열: {reversed_arr}")
-  create_animation_for_data(reversed_arr, 'reversed_array.gif')
+  create_animation_for_data(reversed_arr, 'img/reversed_array.gif')
 
   # 4. 중복이 많은 배열 (기본 데이터에서 일부를 중복으로)
   print(f"\n4. 중복이 많은 배열 애니메이션 생성 중...")
@@ -48,16 +48,16 @@ def create_animations_with_same_data():
   for i in range(7, 10):  # 8, 9, 10번째 위치를 2로 변경
     few_unique_arr[i] = 2
   print(f"중복이 많은 배열: {few_unique_arr}")
-  create_animation_for_data(few_unique_arr, 'few_unique.gif')
+  create_animation_for_data(few_unique_arr, 'img/few_unique.gif')
 
   print(f"\n" + "=" * 60)
   print("모든 애니메이션이 생성되었습니다!")
   print("=" * 60)
   print("생성된 파일들:")
-  print("- random_array.gif")
-  print("- nearly_sorted.gif")
-  print("- reversed_array.gif")
-  print("- few_unique.gif")
+  print("- img/random_array.gif")
+  print("- img/nearly_sorted.gif")
+  print("- img/reversed_array.gif")
+  print("- img/few_unique.gif")
   print("=" * 60)
 
   # 각 배열의 정렬 결과 비교
