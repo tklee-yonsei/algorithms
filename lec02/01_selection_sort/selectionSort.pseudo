@@ -1,0 +1,17 @@
+// selectionSort.pseudo
+함수 selectionSort(배열, 배열크기):
+  시작
+    for i = 0 to 배열크기 - 2:
+      minIndex = i
+      
+      // i번째 위치부터 끝까지 최솟값 찾기
+      for j = i + 1 to 배열크기 - 1:
+        if 배열[j] < 배열[minIndex]:
+          minIndex = j
+      
+      // 최솟값을 i번째 위치로 교환
+      if minIndex != i:
+        temp = 배열[i]
+        배열[i] = 배열[minIndex]
+        배열[minIndex] = temp
+  끝
