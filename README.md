@@ -1,6 +1,6 @@
 # Algorithms Study
 
-알고리즘 학습을 위한 개발 환경입니다.
+알고리즘 학습을 위한 강의 자료입니다.
 
 ## 개발 환경
 
@@ -55,14 +55,14 @@ docker run -it --rm -v $(pwd):/workspace algorithms-dev
 
 ```
 algorithms/
-├── lec1/                  # 강의 1
-├── lec.../                # 강의 ...
-├── .devcontainer/         # VSCode 개발 컨테이너 설정
-├── .vscode/               # VSCode 설정
-├── setup.cfg              # Python 포매터 설정
-├── .clang-format          # C/C++ 포매터 설정
-├── Dockerfile             # Docker 이미지 정의
-└── docker-compose.yml     # Docker Compose 설정
+├── lec01/                  # 강의 1
+├── lec.../                 # 강의 ...
+├── .devcontainer/          # VSCode 개발 컨테이너 설정
+├── .vscode/                # VSCode 설정
+├── setup.cfg               # Python 포매터 설정
+├── .clang-format           # C/C++ 포매터 설정
+├── Dockerfile              # Docker 이미지 정의
+└── docker-compose.yml      # Docker Compose 설정
 ```
 
 ## 사용법
