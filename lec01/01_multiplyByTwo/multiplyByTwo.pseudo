@@ -1,0 +1,6 @@
+// multiplyByTwo_pseudo
+함수 multiplyByTwo(앞사람의수):
+  시작
+    내답변 = 앞사람의수 * 2
+    내답변을 반환
+  끝

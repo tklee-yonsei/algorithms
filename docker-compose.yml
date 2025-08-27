@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  algorithms-dev:
+    build: .
+    container_name: algorithms-development
+    volumes:
+      - .:/workspace
+      - algorithms-data:/workspace/data
+    working_dir: /workspace
+    environment:
+      - PYTHONPATH=/workspace
+    ports:
+      - "8000:8000" # Jupyter notebook용 (필요시)
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+volumes:
+  algorithms-data:
