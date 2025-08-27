@@ -51,7 +51,7 @@ def create_animations_with_same_data():
   create_animation_for_data(few_unique_arr, 'img/few_unique.gif')
 
   print(f"\n" + "=" * 60)
-  print("모든 애니메이션이 생성되었습니다!")
+  print("개별 애니메이션 생성 완료!")
   print("=" * 60)
   print("생성된 파일들:")
   print("- img/random_array.gif")
@@ -66,6 +66,21 @@ def create_animations_with_same_data():
   print(f"거의 정렬된 배열 정렬 후: {sorted(nearly_sorted_arr)}")
   print(f"역순 배열 정렬 후: {sorted(reversed_arr)}")
   print(f"중복이 많은 배열 정렬 후: {sorted(few_unique_arr)}")
+
+  # 비교 애니메이션 생성
+  print(f"\n" + "=" * 60)
+  print("비교 애니메이션 생성 중...")
+  print("=" * 60)
+
+  try:
+    from comparison_animation import create_comparison_animation
+    create_comparison_animation()
+    print("✅ 비교 애니메이션 생성 완료!")
+    print("파일: img/comparison_animation.gif")
+  except ImportError:
+    print("❌ comparison_animation.py 파일을 찾을 수 없습니다.")
+  except Exception as e:
+    print(f"❌ 비교 애니메이션 생성 중 오류: {e}")
 
 
 if __name__ == "__main__":
