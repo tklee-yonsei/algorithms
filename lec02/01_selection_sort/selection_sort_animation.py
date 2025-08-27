@@ -175,5 +175,21 @@ def main():
   print("Sorting completed:", data)
 
 
+def create_animation_for_data(data, filename='selection_sort.gif'):
+  """주어진 데이터로 애니메이션 생성"""
+  print(f"Creating animation for: {data}")
+
+  # 정렬 과정 기록
+  steps, colors = selection_sort_with_animation(data.copy())
+
+  # 애니메이션 생성
+  script_dir = os.path.dirname(os.path.abspath(__file__))
+  gif_path = os.path.join(script_dir, filename)
+  create_animation(steps, colors, gif_path)
+
+  print(f"Animation saved as '{filename}'")
+  return data
+
+
 if __name__ == "__main__":
   main()
