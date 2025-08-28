@@ -1,5 +1,4 @@
 // shellSort.pseudo
-
 함수 getShellGap(배열크기):
   시작
     반환 배열크기 / 2
