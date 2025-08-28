@@ -1,7 +1,37 @@
 // shellSort.c
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+
+int getShellGap(int n) {
+  /*
+   * Shell's original sequence: n/2, n/4, n/8, ...
+   */
+  return n / 2;
+}
+
+int getKnuthGap(int n) {
+  /*
+   * Knuth's sequence: 1, 4, 13, 40, 121, ...
+   */
+  int gap = 1;
+  while (gap < n / 3) {
+    gap = 3 * gap + 1;
+  }
+  return gap;
+}
+
+int getNextGap(int gap, const char* sequence_type) {
+  /*
+   * 다음 gap 값을 계산
+   */
+  if (strcmp(sequence_type, "knuth") == 0) {
+    return gap / 3;
+  } else {
+    return gap / 2;  // shell's original (기본값)
+  }
+}
 
 void insertion_sort_for_gap(int arr[], int n, int start, int gap) {
   /*
@@ -25,15 +55,25 @@ void insertion_sort_for_gap(int arr[], int n, int start, int gap) {
   }
 }
 
-void shellSort(int arr[], int n) {
+void shellSort(int arr[], int n, const char* sequence_type) {
   int gap, start;
 
-  // gap을 n/2부터 시작하여 점진적으로 줄여나감
-  for (gap = n / 2; gap > 0; gap /= 2) {
+  // 초기 gap 설정
+  if (strcmp(sequence_type, "knuth") == 0) {
+    gap = getKnuthGap(n);
+  } else {
+    gap = getShellGap(n);  // 기본값
+  }
+
+  // gap을 점진적으로 줄여나감
+  while (gap > 0) {
     // 각 gap 그룹에 대해 삽입 정렬 수행
     for (start = 0; start < gap; start++) {
       insertion_sort_for_gap(arr, n, start, gap);
     }
+
+    // 다음 gap 계산
+    gap = getNextGap(gap, sequence_type);
   }
 }
 
@@ -51,10 +91,18 @@ int main() {
   printf("정렬 전 배열: ");
   printArray(arr, n);
 
-  shellSort(arr, n);
+  // Shell's original sequence 사용
+  printf("\nShell's original sequence 사용:");
+  int arr_copy[n];
+  memcpy(arr_copy, arr, sizeof(arr));
+  shellSort(arr_copy, n, "shell");
+  printArray(arr_copy, n);
 
-  printf("정렬 후 배열: ");
-  printArray(arr, n);
+  // Knuth's sequence 사용
+  printf("\nKnuth's sequence 사용:");
+  memcpy(arr_copy, arr, sizeof(arr));
+  shellSort(arr_copy, n, "knuth");
+  printArray(arr_copy, n);
 
   return 0;
 }
