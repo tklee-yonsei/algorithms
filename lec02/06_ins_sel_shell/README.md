@@ -7,18 +7,16 @@
 ```
 lec02/06_ins_sel_shell/
 ├── comprehensive_three_way_comparison.py  # 종합 비교 애니메이션
-├── speed_comparison_animation.py          # 속도 비교 애니메이션
 ├── create_all_animations.py               # 모든 애니메이션 생성
 ├── complexity_analysis.md                 # 복잡도 분석 문서
 ├── README.md                              # 이 파일
 └── img/                                   # 생성된 애니메이션 파일들
-    ├── comprehensive_three_way_comparison.gif
-    └── speed_comparison.gif
+    └── comprehensive_three_way_comparison.gif
 ```
 
 ## 🎯 주요 기능
 
-### 1. 종합 비교 애니메이션 (`comprehensive_three_way_comparison.gif`)
+### 종합 비교 애니메이션 (`comprehensive_three_way_comparison.gif`)
 
 - **4가지 데이터 케이스**:
 
@@ -35,12 +33,6 @@ lec02/06_ins_sel_shell/
 
 - **총 12개의 그림**: 4개 케이스 × 3개 알고리즘
 
-### 2. 속도 비교 애니메이션 (`speed_comparison.gif`)
-
-- 다양한 배열 크기에서의 실행 시간 비교
-- 막대 그래프와 선 그래프로 시각화
-- 실제 성능 측정 결과
-
 ## 🚀 실행 방법
 
 ### 모든 애니메이션 생성
@@ -56,12 +48,6 @@ python create_all_animations.py
 
 ```bash
 python comprehensive_three_way_comparison.py
-```
-
-#### 속도 비교 애니메이션
-
-```bash
-python speed_comparison_animation.py
 ```
 
 ## 📊 알고리즘 비교 요약

@@ -14,17 +14,8 @@ def create_all_animations():
   print("Insertion Sort vs Selection Sort vs Shell Sort 모든 애니메이션 생성")
   print("=" * 80)
 
-  # 1. 속도 비교 애니메이션 생성
-  print("\n1. 속도 비교 애니메이션 생성 중...")
-  try:
-    from speed_comparison_animation import create_speed_comparison_animation
-    create_speed_comparison_animation()
-    print("✅ 속도 비교 애니메이션 생성 완료!")
-  except Exception as e:
-    print(f"❌ 속도 비교 애니메이션 생성 중 오류: {e}")
-
-  # 2. 종합 비교 애니메이션 생성
-  print("\n2. 종합 비교 애니메이션 생성 중...")
+  # 종합 비교 애니메이션 생성
+  print("\n종합 비교 애니메이션 생성 중...")
   try:
     from comprehensive_three_way_comparison import create_comprehensive_three_way_comparison
     create_comprehensive_three_way_comparison()
@@ -36,7 +27,6 @@ def create_all_animations():
   print("모든 애니메이션 생성 완료!")
   print("=" * 80)
   print("생성된 파일들:")
-  print("- img/speed_comparison.gif")
   print("- img/comprehensive_three_way_comparison.gif")
   print("- complexity_analysis.md")
   print("=" * 80)
