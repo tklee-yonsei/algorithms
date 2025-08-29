@@ -1,0 +1,15 @@
+// insertionSort.pseudo
+함수 insertionSort(배열, 배열크기):
+  시작
+    for i = 1 to 배열크기 - 1:
+      key = 배열[i]
+      j = i - 1
+      
+      // key보다 큰 원소들을 오른쪽으로 이동
+      while j >= 0 and 배열[j] > key:
+        배열[j + 1] = 배열[j]
+        j = j - 1
+      
+      // key를 올바른 위치에 삽입
+      배열[j + 1] = key
+  끝

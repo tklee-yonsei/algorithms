@@ -1,0 +1,58 @@
+// shellSort.pseudo
+함수 getShellGap(배열크기):
+  시작
+    반환 배열크기 / 2
+  끝
+
+함수 getKnuthGap(배열크기):
+  시작
+    gap = 1
+    while gap < 배열크기 / 3:
+      gap = 3 * gap + 1
+    반환 gap
+  끝
+
+함수 getNextGap(gap, 시퀀스타입):
+  시작
+    if 시퀀스타입 == "shell":
+      반환 gap / 2
+    else if 시퀀스타입 == "knuth":
+      반환 gap / 3
+    else:
+      반환 gap / 2  // 기본값
+  끝
+
+함수 insertionSortForGap(배열, 배열크기, start, gap):
+  시작
+    // 현재 gap 그룹의 요소들을 삽입 정렬
+    for i = start + gap to 배열크기 - 1 step gap:
+      temp = 배열[i]
+      j = i
+      
+      // gap만큼 떨어진 요소들과 비교하여 삽입
+      while j >= start + gap and 배열[j - gap] > temp:
+        배열[j] = 배열[j - gap]
+        j = j - gap
+      
+      // temp를 올바른 위치에 삽입
+      배열[j] = temp
+  끝
+
+함수 shellSort(배열, 배열크기, 시퀀스타입 = "shell"):
+  시작
+    if 시퀀스타입 == "knuth":
+      gap = getKnuthGap(배열크기)
+    else:
+      gap = getShellGap(배열크기)  // 기본값
+    
+    while gap > 0:
+      // 각 gap 그룹에 대해 삽입 정렬 수행
+      for start = 0 to gap - 1:
+        insertionSortForGap(배열, 배열크기, start, gap)
+      
+      // gap을 줄임
+      gap = getNextGap(gap, 시퀀스타입)
+  끝
+
+시간복잡도: O(n²) 최악의 경우, O(n log n) 평균의 경우
+공간복잡도: O(1)
