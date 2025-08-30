@@ -1,0 +1,47 @@
+// mergeSort.pseudo
+
+함수 merge(배열, left, mid, right):
+  시작
+    // 임시 배열 생성
+    leftArr = 배열[left...mid]
+    rightArr = 배열[mid+1...right]
+    
+    i = 0, j = 0, k = left
+    
+    // 두 배열을 비교하며 작은 값부터 병합
+    while i < leftArr의 크기 and j < rightArr의 크기:
+      if leftArr[i] <= rightArr[j]:
+        배열[k] = leftArr[i]
+        i = i + 1
+      else:
+        배열[k] = rightArr[j]
+        j = j + 1
+      k = k + 1
+    
+    // 남은 요소들 복사
+    while i < leftArr의 크기:
+      배열[k] = leftArr[i]
+      i = i + 1
+      k = k + 1
+    
+    while j < rightArr의 크기:
+      배열[k] = rightArr[j]
+      j = j + 1
+      k = k + 1
+  끝
+
+함수 mergeSort(배열, left, right):
+  시작
+    if left < right:
+      // 분할: 중간점 계산
+      mid = (left + right) / 2
+      
+      // 정복: 왼쪽 부분 재귀적으로 정렬
+      mergeSort(배열, left, mid)
+      
+      // 정복: 오른쪽 부분 재귀적으로 정렬
+      mergeSort(배열, mid + 1, right)
+      
+      // 결합: 정렬된 두 부분을 병합
+      merge(배열, left, mid, right)
+  끝
