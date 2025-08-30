@@ -1,5 +1,4 @@
 // countingSort.pseudo
-
 함수 findMinMax(배열, n):
   시작
     min_val = 배열[0]
