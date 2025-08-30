@@ -1,11 +1,23 @@
 # countingSort.py
 
+def find_min_max(arr):
+  """최대값과 최소값 찾기"""
+  min_val = arr[0]
+  max_val = arr[0]
+  for num in arr:
+    if num < min_val:
+      min_val = num
+    if num > max_val:
+      max_val = num
+  return min_val, max_val
+
+
 def counting_sort(arr):
   """
   카운팅 정렬 알고리즘
 
   Args:
-      arr: 정렬할 정수 배열 (0 이상의 값들)
+      arr: 정렬할 정수 배열
 
   Returns:
       정렬된 배열
@@ -17,98 +29,28 @@ def counting_sort(arr):
     return []
 
   # 1. 최대값과 최소값 찾기
-  min_val = min(arr)
-  max_val = max(arr)
-
-  # 음수 처리를 위해 오프셋 사용
-  offset = -min_val
-  range_size = max_val - min_val + 1
-
-  # 2. 카운팅 배열 초기화 (각 값의 출현 횟수를 저장)
-  count = [0] * range_size
-
-  # 3. 각 원소의 개수 세기
-  for num in arr:
-    count[num + offset] += 1
-
-  # 4. 카운팅 배열을 누적합으로 변환 (각 값의 최종 위치 계산)
-  for i in range(1, len(count)):
-    count[i] += count[i - 1]
-
-  # 5. 결과 배열 생성
-  result = [0] * len(arr)
-
-  # 6. 원본 배열을 뒤에서부터 순회하며 결과 배열에 배치 (안정 정렬 보장)
-  for i in range(len(arr) - 1, -1, -1):
-    value = arr[i]
-    position = count[value + offset] - 1
-    result[position] = value
-    count[value + offset] -= 1
-
-  return result
-
-
-def counting_sort_with_steps(arr, show_steps=True):
-  """
-  단계별 출력을 포함한 카운팅 정렬
-
-  Args:
-      arr: 정렬할 배열
-      show_steps: 단계별 출력 여부
-
-  Returns:
-      정렬된 배열
-  """
-  if not arr:
-    return []
-
-  if show_steps:
-    print(f"입력 배열: {arr}")
-
-  # 1. 최대값과 최소값 찾기
-  min_val = min(arr)
-  max_val = max(arr)
-  offset = -min_val
-  range_size = max_val - min_val + 1
-
-  if show_steps:
-    print(f"값의 범위: {min_val} ~ {max_val} (크기: {range_size})")
+  min_val, max_val = find_min_max(arr)
 
   # 2. 카운팅 배열 초기화
+  range_size = max_val - min_val + 1
+  offset = -min_val
   count = [0] * range_size
 
   # 3. 각 원소의 개수 세기
   for num in arr:
     count[num + offset] += 1
 
-  if show_steps:
-    print(f"카운팅 배열 (개수): {count}")
-
-  # 4. 누적합으로 변환
+  # 4. 카운팅 배열을 누적합으로 변환
   for i in range(1, len(count)):
     count[i] += count[i - 1]
 
-  if show_steps:
-    print(f"카운팅 배열 (누적): {count}")
-
-  # 5. 결과 배열 생성
+  # 5. 결과 배열에 배치 (뒤에서부터)
   result = [0] * len(arr)
-
-  # 6. 배치 과정
-  if show_steps:
-    print("\n배치 과정:")
-
   for i in range(len(arr) - 1, -1, -1):
     value = arr[i]
     position = count[value + offset] - 1
     result[position] = value
     count[value + offset] -= 1
-
-    if show_steps:
-      print(f"  {value}을(를) 위치 {position}에 배치")
-
-  if show_steps:
-    print(f"\n최종 결과: {result}")
 
   return result
 
@@ -122,11 +64,13 @@ if __name__ == "__main__":
   sorted_arr1 = counting_sort(arr1)
   print(f"정렬 후: {sorted_arr1}")
 
-  print("\n=== 단계별 카운팅 정렬 ===")
+  print("\n=== 중복값 포함 예시 ===")
   arr2 = [1, 4, 1, 2, 7, 5, 2]
-  counting_sort_with_steps(arr2)
+  print(f"정렬 전: {arr2}")
+  sorted_arr2 = counting_sort(arr2)
+  print(f"정렬 후: {sorted_arr2}")
 
-  print("\n=== 기본 정렬 예시 2 ===")
+  print("\n=== 더 긴 배열 예시 ===")
   arr3 = [3, 1, 4, 1, 5, 9, 2, 6]
   print(f"정렬 전: {arr3}")
   sorted_arr3 = counting_sort(arr3)
@@ -138,7 +82,7 @@ if __name__ == "__main__":
   sorted_arr4 = counting_sort(arr4)
   print(f"정렬 후: {sorted_arr4}")
 
-  print("\n=== 중복값 많은 경우 ===")
+  print("\n=== 중복값이 많은 경우 ===")
   arr5 = [3, 1, 1, 3, 2, 2, 3, 1]
   print(f"정렬 전: {arr5}")
   sorted_arr5 = counting_sort(arr5)
