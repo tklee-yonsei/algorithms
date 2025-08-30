@@ -1,0 +1,210 @@
+/*
+ * 카운팅 정렬 (Counting Sort) 의사코드
+ * 
+ * 시간 복잡도: O(n + k)
+ * 공간 복잡도: O(k)
+ * 
+ * n: 입력 배열의 크기
+ * k: 입력 값의 범위 (max - min + 1)
+ * 
+ * 특징:
+ * - 비교 기반이 아닌 정렬 알고리즘
+ * - 안정 정렬 (Stable Sort)
+ * - 값의 범위가 제한적일 때 매우 효율적
+ * - 정수 정렬에 특화
+ */
+
+ALGORITHM CountingSort(A, n)
+INPUT:
+    A: 정렬할 정수 배열
+    n: 배열의 크기
+
+OUTPUT:
+    B: 정렬된 배열
+
+BEGIN
+    // 1. 입력 검증
+    IF n <= 0 THEN
+        RETURN empty array
+    END IF
+    
+    // 2. 최대값과 최소값 찾기
+    min_val ← A[0]
+    max_val ← A[0]
+    
+    FOR i ← 1 TO n-1 DO
+        IF A[i] < min_val THEN
+            min_val ← A[i]
+        END IF
+        IF A[i] > max_val THEN
+            max_val ← A[i]
+        END IF
+    END FOR
+    
+    // 3. 값의 범위 및 오프셋 계산
+    range ← max_val - min_val + 1
+    offset ← -min_val    // 음수 처리를 위한 오프셋
+    
+    // 4. 카운팅 배열 초기화
+    DECLARE C[0..range-1]
+    FOR i ← 0 TO range-1 DO
+        C[i] ← 0
+    END FOR
+    
+    // 5. 각 원소의 출현 횟수 계산
+    FOR i ← 0 TO n-1 DO
+        index ← A[i] + offset
+        C[index] ← C[index] + 1
+    END FOR
+    
+    // 6. 누적합으로 변환 (각 값의 최종 위치 계산)
+    FOR i ← 1 TO range-1 DO
+        C[i] ← C[i] + C[i-1]
+    END FOR
+    
+    // 7. 결과 배열 생성
+    DECLARE B[0..n-1]
+    
+    // 8. 원본 배열을 뒤에서부터 순회하며 배치 (안정 정렬 보장)
+    FOR i ← n-1 DOWNTO 0 DO
+        value ← A[i]
+        index ← value + offset
+        position ← C[index] - 1
+        B[position] ← value
+        C[index] ← C[index] - 1
+    END FOR
+    
+    RETURN B
+END
+
+/*
+ * 제자리 카운팅 정렬 (In-place Counting Sort)
+ */
+ALGORITHM CountingSortInPlace(A, n)
+INPUT:
+    A: 정렬할 정수 배열 (원본이 수정됨)
+    n: 배열의 크기
+
+BEGIN
+    // 임시 배열에 정렬 결과 저장
+    B ← CountingSort(A, n)
+    
+    // 원본 배열에 결과 복사
+    FOR i ← 0 TO n-1 DO
+        A[i] ← B[i]
+    END FOR
+END
+
+/*
+ * 단계별 출력을 포함한 카운팅 정렬
+ */
+ALGORITHM CountingSortWithSteps(A, n)
+INPUT:
+    A: 정렬할 정수 배열
+    n: 배열의 크기
+
+OUTPUT:
+    B: 정렬된 배열
+
+BEGIN
+    PRINT "입력 배열:", A
+    
+    // 1-3. 범위 계산 (위와 동일)
+    min_val, max_val ← FindMinMax(A, n)
+    range ← max_val - min_val + 1
+    offset ← -min_val
+    
+    PRINT "값의 범위:", min_val, "~", max_val, "(크기:", range, ")"
+    
+    // 4-5. 카운팅 배열 생성 및 개수 세기
+    DECLARE C[0..range-1] ← [0, 0, ..., 0]
+    
+    FOR i ← 0 TO n-1 DO
+        C[A[i] + offset] ← C[A[i] + offset] + 1
+    END FOR
+    
+    PRINT "카운팅 배열 (개수):", C
+    
+    // 6. 누적합으로 변환
+    FOR i ← 1 TO range-1 DO
+        C[i] ← C[i] + C[i-1]
+    END FOR
+    
+    PRINT "카운팅 배열 (누적):", C
+    
+    // 7-8. 배치 과정
+    DECLARE B[0..n-1]
+    PRINT "배치 과정:"
+    
+    FOR i ← n-1 DOWNTO 0 DO
+        value ← A[i]
+        position ← C[value + offset] - 1
+        B[position] ← value
+        C[value + offset] ← C[value + offset] - 1
+        
+        PRINT "  ", value, "을(를) 위치", position, "에 배치"
+    END FOR
+    
+    PRINT "최종 결과:", B
+    RETURN B
+END
+
+/*
+ * 보조 함수: 최대값과 최소값 찾기
+ */
+ALGORITHM FindMinMax(A, n)
+INPUT:
+    A: 배열
+    n: 배열의 크기
+
+OUTPUT:
+    min_val, max_val: 최소값과 최대값
+
+BEGIN
+    min_val ← A[0]
+    max_val ← A[0]
+    
+    FOR i ← 1 TO n-1 DO
+        IF A[i] < min_val THEN
+            min_val ← A[i]
+        END IF
+        IF A[i] > max_val THEN
+            max_val ← A[i]
+        END IF
+    END FOR
+    
+    RETURN min_val, max_val
+END
+
+/*
+ * 복잡도 분석:
+ * 
+ * 시간 복잡도:
+ * - 최대값/최소값 찾기: O(n)
+ * - 카운팅 배열 초기화: O(k)
+ * - 개수 세기: O(n)
+ * - 누적합 계산: O(k)
+ * - 결과 배치: O(n)
+ * - 전체: O(n + k)
+ * 
+ * 공간 복잡도:
+ * - 카운팅 배열: O(k)
+ * - 결과 배열: O(n)
+ * - 전체: O(n + k)
+ * 
+ * 장점:
+ * - 입력 크기에 선형적인 시간 복잡도
+ * - 안정 정렬
+ * - 간단한 구현
+ * 
+ * 단점:
+ * - 값의 범위가 클 때 비효율적
+ * - 추가 메모리 공간 필요
+ * - 정수만 정렬 가능
+ * 
+ * 적용 예시:
+ * - 학생 성적 정렬 (0~100)
+ * - 나이별 인원수 정렬
+ * - 색상 코드 정렬
+ * - 빈도수 기반 정렬
+ */
