@@ -1,0 +1,80 @@
+// quickSelection.pseudo
+
+함수 partition(배열, low, high):
+  시작
+    // 첫 번째 요소를 피벗으로 선택
+    pivot = 배열[low]
+    
+    i = low - 1
+    j = high + 1
+    
+    while true:
+      // 왼쪽에서 피벗보다 큰 요소 찾기
+      repeat:
+        i = i + 1
+      until 배열[i] >= pivot
+      
+      // 오른쪽에서 피벗보다 작은 요소 찾기
+      repeat:
+        j = j - 1
+      until 배열[j] <= pivot
+      
+      // 교환할 요소가 없으면 종료
+      if i >= j:
+        return j
+      
+      // 요소 교환
+      배열[i]와 배열[j] 교환
+  끝
+
+함수 quickSelect(배열, low, high, k):
+  시작
+    if low == high:
+      return 배열[low]
+    
+    // 분할
+    pivotIndex = partition(배열, low, high)
+    
+    // k번째 원소의 위치 확인
+    if k <= pivotIndex:
+      // k번째 원소가 왼쪽 부분에 있음
+      return quickSelect(배열, low, pivotIndex, k)
+    else:
+      // k번째 원소가 오른쪽 부분에 있음
+      return quickSelect(배열, pivotIndex + 1, high, k)
+  끝
+
+함수 findKthSmallest(배열, 크기, k):
+  시작
+    if k < 1 또는 k > 크기:
+      error "k는 1부터 크기 사이의 값이어야 합니다"
+      return -1
+    
+    // 배열을 복사하여 원본 배열을 보존
+    tempArr = 배열 복사
+    
+    result = quickSelect(tempArr, 0, 크기-1, k-1) // 0-based로 변환
+    
+    tempArr 메모리 해제
+    return result
+  끝
+
+주요 알고리즘:
+==============
+
+Quick Selection 알고리즘:
+1. Quick Sort의 분할 정복 기법을 사용
+2. 전체 배열을 정렬하지 않고 k번째 원소만 찾음
+3. 평균 시간복잡도: O(n)
+4. 최악 시간복잡도: O(n²)
+5. 공간복잡도: O(log n) - 재귀 호출 스택
+
+작동 원리:
+1. 피벗을 선택하여 배열을 분할
+2. k번째 원소가 피벗의 왼쪽에 있으면 왼쪽 부분만 재귀 호출
+3. k번째 원소가 피벗의 오른쪽에 있으면 오른쪽 부분만 재귀 호출
+4. 피벗이 정확히 k번째 위치에 있으면 피벗 반환
+
+Quick Sort와의 차이점:
+- Quick Sort: 양쪽 부분을 모두 재귀 호출 (전체 정렬)
+- Quick Selection: 필요한 한쪽 부분만 재귀 호출 (특정 원소만 찾음)

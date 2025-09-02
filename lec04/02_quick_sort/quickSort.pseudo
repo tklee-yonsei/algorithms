@@ -1,0 +1,39 @@
+// quickSort.pseudo
+
+함수 partition(배열, low, high):
+  시작
+    // 첫 번째 요소를 피벗으로 선택
+    pivot = 배열[low]
+    
+    i = low - 1
+    j = high + 1
+    
+    while true:
+      // 왼쪽에서 피벗보다 큰 요소 찾기
+      repeat:
+        i = i + 1
+      until 배열[i] >= pivot
+      
+      // 오른쪽에서 피벗보다 작은 요소 찾기
+      repeat:
+        j = j - 1
+      until 배열[j] <= pivot
+      
+      // 교환할 요소가 없으면 종료
+      if i >= j:
+        return j
+      
+      // 요소 교환
+      배열[i]와 배열[j] 교환
+  끝
+
+함수 quickSort(배열, low, high):
+  시작
+    if low < high:
+      // 분할
+      pivotIndex = partition(배열, low, high)
+      
+      // 정복
+      quickSort(배열, low, pivotIndex)
+      quickSort(배열, pivotIndex + 1, high)
+  끝
