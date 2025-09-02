@@ -1,0 +1,8 @@
+// fibonacciRecursive.pseudo
+함수 fibonacciRecursive(n):
+  시작
+    if n <= 1:
+      n을 반환
+    else:
+      fibonacciRecursive(n-1) + fibonacciRecursive(n-2)를 반환
+  끝

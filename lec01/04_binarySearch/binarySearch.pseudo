@@ -1,0 +1,18 @@
+// binarySearch.pseudo
+함수 binarySearch(배열, 배열크기, 찾을값):
+  시작
+    left = 0
+    right = 배열크기 - 1
+    
+    while left <= right:
+      mid = (left + right) / 2
+      
+      if 배열[mid] == 찾을값:
+        mid를 반환  // 찾은 인덱스 반환
+      else if 배열[mid] < 찾을값:
+        left = mid + 1  // 오른쪽 절반 탐색
+      else:
+        right = mid - 1  // 왼쪽 절반 탐색
+    
+    -1을 반환  // 찾지 못한 경우
+  끝

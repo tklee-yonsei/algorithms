@@ -1,0 +1,44 @@
+// countingSort.pseudo
+함수 findMinMax(배열, n):
+  시작
+    min_val = 배열[0]
+    max_val = 배열[0]
+    for i = 1 to n-1:
+      if 배열[i] < min_val:
+        min_val = 배열[i]
+      if 배열[i] > max_val:
+        max_val = 배열[i]
+    return min_val, max_val
+  끝
+
+함수 countingSort(배열, n):
+  시작
+    if n <= 0:
+      return empty array
+    
+    // 최대값과 최소값 찾기
+    min_val, max_val = findMinMax(배열, n)
+    
+    // 카운팅 배열 초기화
+    range = max_val - min_val + 1
+    offset = -min_val
+    count[0...range-1] = 0
+    
+    // 각 원소의 개수 세기
+    for i = 0 to n-1:
+      count[배열[i] + offset] = count[배열[i] + offset] + 1
+    
+    // 누적합으로 변환
+    for i = 1 to range-1:
+      count[i] = count[i] + count[i-1]
+    
+    // 결과 배열에 배치 (뒤에서부터)
+    result[0...n-1]
+    for i = n-1 down to 0:
+      value = 배열[i]
+      position = count[value + offset] - 1
+      result[position] = value
+      count[value + offset] = count[value + offset] - 1
+    
+    return result
+  끝

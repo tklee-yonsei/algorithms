@@ -1,0 +1,9 @@
+// sequentialSearch.pseudo
+함수 sequentialSearch(배열, 배열크기, 찾을값):
+  시작
+    for i = 0 to 배열크기-1:
+      if 배열[i] == 찾을값:
+        i를 반환  // 찾은 인덱스 반환
+    
+    -1을 반환  // 찾지 못한 경우
+  끝
