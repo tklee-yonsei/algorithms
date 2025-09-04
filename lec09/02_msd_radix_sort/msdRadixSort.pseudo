@@ -1,0 +1,109 @@
+// msdRadixSort.pseudo
+
+상수 RADIX = 10
+
+함수 getMax(배열, n):
+  시작
+    max = 배열[0]
+    for i = 1 to n-1:
+      if 배열[i] > max:
+        max = 배열[i]
+    return max
+  끝
+
+함수 countingSortByDigitMSD(배열, start, end, exp, bucketSizes):
+  시작
+    n = end - start + 1
+    output[0...n-1]
+    count[0...RADIX-1] = 0
+    
+    // 현재 자릿수(exp)에 대한 각 자릿수의 빈도 계산
+    for i = start to end:
+      digit = (배열[i] / exp) % RADIX
+      count[digit] = count[digit] + 1
+    
+    // 버킷 크기 저장 (재귀 호출을 위해)
+    for i = 0 to RADIX-1:
+      bucketSizes[i] = count[i]
+    
+    // 누적 카운트로 변경 (위치 정보 생성)
+    for i = 1 to RADIX-1:
+      count[i] = count[i] + count[i-1]
+    
+    // 뒤에서부터 처리하여 안정성 보장
+    for i = end down to start:
+      digit = (배열[i] / exp) % RADIX
+      position = count[digit] - 1
+      output[position] = 배열[i]
+      count[digit] = count[digit] - 1
+    
+    // 결과를 원본 배열의 해당 구간으로 복사
+    for i = 0 to n-1:
+      배열[start + i] = output[i]
+  끝
+
+함수 msdRadixSortRecursive(배열, start, end, exp):
+  시작
+    // 기저 조건: 범위가 유효하지 않거나 자릿수가 없으면 종료
+    if start >= end or exp <= 0:
+      return
+    
+    bucketSizes[0...RADIX-1]
+    
+    // 현재 자릿수에 대해 카운팅 정렬 수행
+    countingSortByDigitMSD(배열, start, end, exp, bucketSizes)
+    
+    // 중간 과정 출력 (선택사항)
+    print "자릿수", exp, "정렬 후 (", start, "~", end, "):", 배열[start...end]
+    
+    // 각 버킷에 대해 재귀적으로 정렬 (다음 자릿수로)
+    currentStart = start
+    for i = 0 to RADIX-1:
+      if bucketSizes[i] > 1:
+        // 버킷에 2개 이상의 원소가 있으면 재귀 호출
+        msdRadixSortRecursive(배열, currentStart, 
+                            currentStart + bucketSizes[i] - 1, 
+                            exp / RADIX)
+      currentStart = currentStart + bucketSizes[i]
+  끝
+
+함수 msdRadixSort(배열, n):
+  시작
+    if n <= 1:
+      return
+    
+    // 최대값 찾기
+    max = getMax(배열, n)
+    
+    // 최대 자릿수의 exp 값 계산 (가장 높은 자릿수부터 시작)
+    exp = 1
+    while max / exp >= RADIX:
+      exp = exp * RADIX
+    
+    // 재귀적으로 MSD Radix Sort 수행
+    msdRadixSortRecursive(배열, 0, n-1, exp)
+  끝
+
+// 메인 알고리즘
+함수 main():
+  시작
+    // 테스트 배열들
+    배열1 = [170, 45, 75, 90, 2, 802, 24, 66]
+    배열2 = [329, 457, 657, 839, 436, 720, 355]
+    배열3 = [1234, 5678, 9012, 3456, 7890]
+    
+    print "=== MSD Radix Sort 테스트 1 ==="
+    print "정렬 전:", 배열1
+    msdRadixSort(배열1, length(배열1))
+    print "최종 정렬 후:", 배열1
+    
+    print "\n=== MSD Radix Sort 테스트 2 ==="
+    print "정렬 전:", 배열2
+    msdRadixSort(배열2, length(배열2))
+    print "최종 정렬 후:", 배열2
+    
+    print "\n=== MSD Radix Sort 테스트 3 ==="
+    print "정렬 전:", 배열3
+    msdRadixSort(배열3, length(배열3))
+    print "최종 정렬 후:", 배열3
+  끝
