@@ -1,0 +1,166 @@
+// suffixArray.pseudo
+
+구조체 SuffixEntry:
+  시작
+    index: 정수        // 원래 인덱스
+    suffix: 문자열     // suffix 문자열
+  끝
+
+구조체 SuffixRank:
+  시작
+    rank[0...1]: 정수  // 현재와 다음 위치의 rank
+    index: 정수        // 원래 인덱스
+  끝
+
+함수 compareSuffix(a, b):
+  시작
+    // 두 suffix를 사전순으로 비교
+    return strcmp(a.suffix, b.suffix)
+  끝
+
+함수 compareRanks(a, b):
+  시작
+    // 첫 번째 rank 비교
+    if a.rank[0] != b.rank[0]:
+      return a.rank[0] - b.rank[0]
+    
+    // 두 번째 rank 비교
+    return a.rank[1] - b.rank[1]
+  끝
+
+함수 buildSuffixArrayNaive(text, suffixArray, n):
+  시작
+    // Naive 방법: O(n^2 log n)
+    suffixes[0...n-1]: SuffixEntry
+    
+    // 모든 suffix 생성
+    for i = 0 to n-1:
+      suffixes[i].index = i
+      suffixes[i].suffix = text[i...]  // i번째부터 끝까지
+    
+    // 사전순 정렬
+    sort(suffixes, compareSuffix)
+    
+    // 결과를 suffix array로 복사
+    for i = 0 to n-1:
+      suffixArray[i] = suffixes[i].index
+  끝
+
+함수 buildSuffixArrayDoubling(text, suffixArray, n):
+  시작
+    // Doubling 알고리즘: O(n log^2 n)
+    suffixes[0...n-1]: SuffixRank
+    
+    // 초기 rank 설정 (각 문자)
+    for i = 0 to n-1:
+      suffixes[i].rank[0] = text[i]
+      suffixes[i].rank[1] = if (i + 1 < n) then text[i + 1] else -1
+      suffixes[i].index = i
+    
+    // 정렬
+    sort(suffixes, compareRanks)
+    
+    // 각 단계마다 길이를 2배씩 증가
+    k = 4
+    while k < 2 * n:
+      // 새로운 rank 할당
+      rank = 0
+      prevRank0 = suffixes[0].rank[0]
+      prevRank1 = suffixes[0].rank[1]
+      suffixes[0].rank[0] = rank
+      
+      index[0...n-1]: 정수
+      index[suffixes[0].index] = 0
+      
+      for i = 1 to n-1:
+        if suffixes[i].rank[0] != prevRank0 or suffixes[i].rank[1] != prevRank1:
+          rank = rank + 1
+        
+        prevRank0 = suffixes[i].rank[0]
+        prevRank1 = suffixes[i].rank[1]
+        suffixes[i].rank[0] = rank
+        index[suffixes[i].index] = i
+      
+      // 다음 위치의 rank 업데이트
+      for i = 0 to n-1:
+        nextIndex = suffixes[i].index + k / 2
+        suffixes[i].rank[1] = if (nextIndex < n) then suffixes[index[nextIndex]].rank[0] else -1
+      
+      // 다시 정렬
+      sort(suffixes, compareRanks)
+      
+      k = k * 2
+    
+    // 최종 suffix array 생성
+    for i = 0 to n-1:
+      suffixArray[i] = suffixes[i].index
+  끝
+
+함수 printSuffixArray(text, suffixArray, n):
+  시작
+    print "Index\tSuffix"
+    for i = 0 to n-1:
+      idx = suffixArray[i]
+      print idx, "\t", text[idx...]
+  끝
+
+함수 searchPattern(text, suffixArray, n, pattern):
+  시작
+    // 이진 탐색을 사용하여 패턴 검색
+    left = 0
+    right = n - 1
+    
+    while left <= right:
+      mid = (left + right) / 2
+      suffix = text[suffixArray[mid]...]
+      
+      cmp = compare(pattern, suffix)
+      if cmp == 0:
+        return suffixArray[mid]  // 패턴 발견
+      else if cmp < 0:
+        right = mid - 1
+      else:
+        left = mid + 1
+    
+    return -1  // 패턴을 찾지 못함
+  끝
+
+// 메인 알고리즘
+함수 main():
+  시작
+    // 테스트 문자열들
+    text1 = "banana"
+    text2 = "abcdef"
+    text3 = "mississippi"
+    
+    n1 = length(text1)
+    n2 = length(text2)
+    n3 = length(text3)
+    
+    suffixArray1[0...n1-1]
+    suffixArray2[0...n2-1]
+    suffixArray3[0...n3-1]
+    
+    print "=== Naive 방법 테스트 ==="
+    print "문자열:", text1
+    buildSuffixArrayNaive(text1, suffixArray1, n1)
+    printSuffixArray(text1, suffixArray1, n1)
+    
+    print "\n=== Doubling 알고리즘 테스트 ==="
+    print "문자열:", text2
+    buildSuffixArrayDoubling(text2, suffixArray2, n2)
+    printSuffixArray(text2, suffixArray2, n2)
+    
+    print "\n=== 복잡한 문자열 테스트 ==="
+    print "문자열:", text3
+    buildSuffixArrayDoubling(text3, suffixArray3, n3)
+    printSuffixArray(text3, suffixArray3, n3)
+    
+    print "\n=== 패턴 검색 테스트 ==="
+    pattern = "iss"
+    result = searchPattern(text3, suffixArray3, n3, pattern)
+    if result != -1:
+      print "패턴", pattern, "을 위치", result, "에서 발견"
+    else:
+      print "패턴", pattern, "을 찾을 수 없음"
+  끝
