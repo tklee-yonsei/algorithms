@@ -1,0 +1,79 @@
+// lsdRadixSort.pseudo
+
+함수 getMax(배열, n):
+  시작
+    max = 배열[0]
+    for i = 1 to n-1:
+      if 배열[i] > max:
+        max = 배열[i]
+    return max
+  끝
+
+함수 countingSortByDigit(배열, n, exp):
+  시작
+    // 출력 배열 생성
+    output[0...n-1]
+    
+    // 0~9까지의 카운트 배열 초기화
+    count[0...9] = 0
+    
+    // 현재 자릿수(exp)에 대한 각 자릿수의 빈도 계산
+    for i = 0 to n-1:
+      digit = (배열[i] / exp) % 10
+      count[digit] = count[digit] + 1
+    
+    // 누적 카운트로 변경 (위치 정보 생성)
+    for i = 1 to 9:
+      count[i] = count[i] + count[i-1]
+    
+    // 뒤에서부터 처리하여 안정성 보장
+    for i = n-1 down to 0:
+      digit = (배열[i] / exp) % 10
+      position = count[digit] - 1
+      output[position] = 배열[i]
+      count[digit] = count[digit] - 1
+    
+    // 결과를 원본 배열로 복사
+    for i = 0 to n-1:
+      배열[i] = output[i]
+  끝
+
+함수 lsdRadixSort(배열, n):
+  시작
+    if n <= 0:
+      return
+    
+    // 최대값 찾기
+    max = getMax(배열, n)
+    
+    // 가장 낮은 자릿수부터 시작하여 각 자릿수에 대해 카운팅 정렬 수행
+    // exp는 현재 처리 중인 자릿수 (1, 10, 100, ...)
+    exp = 1
+    while max / exp > 0:
+      // 현재 자릿수에 대해 카운팅 정렬 수행
+      countingSortByDigit(배열, n, exp)
+      
+      // 중간 과정 출력 (선택사항)
+      print "자릿수", exp, "정렬 후:", 배열
+      
+      // 다음 자릿수로 이동
+      exp = exp * 10
+  끝
+
+// 메인 알고리즘
+함수 main():
+  시작
+    // 테스트 배열들
+    배열1 = [170, 45, 75, 90, 2, 802, 24, 66]
+    배열2 = [329, 457, 657, 839, 436, 720, 355]
+    
+    print "=== LSD Radix Sort 테스트 1 ==="
+    print "정렬 전:", 배열1
+    lsdRadixSort(배열1, length(배열1))
+    print "최종 정렬 후:", 배열1
+    
+    print "\n=== LSD Radix Sort 테스트 2 ==="
+    print "정렬 전:", 배열2
+    lsdRadixSort(배열2, length(배열2))
+    print "최종 정렬 후:", 배열2
+  끝
