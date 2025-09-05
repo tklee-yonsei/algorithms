@@ -1,0 +1,270 @@
+// fsa.pseudo
+
+// FSA (Finite State Automaton) 의사코드
+// 간단한 a(b)*c 패턴을 인식하는 유한 상태 오토마타
+
+// 상태 정의
+상태 S0 = 0  // 시작 상태
+상태 S1 = 1  // 'a'를 읽은 상태
+상태 S2 = 2  // b* 시작 상태 (0개의 'b' 허용)
+상태 S3 = 3  // 'b'를 1개 이상 읽은 상태
+상태 S4 = 4  // 'c'를 읽어서 패턴 매칭 완료 (Accept 상태)
+
+// 상태 다이어그램:
+// S0 --'a'--> S1 --ε--> S2 --'b'--> S3 --'b'--> S2 (루프)
+//                       S2 --'c'--> S4 (수락)
+//                       S3 --'c'--> S4 (수락)
+
+함수 accept(input):
+  시작
+    // FSA가 주어진 입력 문자열을 수락하는지 확인
+    
+    currentState = S0
+    print "시작 상태: S" + currentState
+    
+    // 입력 문자열의 각 문자를 처리
+    for i = 0 to length(input) - 1:
+      ch = input[i]
+      nextState = currentState
+      
+      // 상태 전이 규칙
+      if currentState == S0:  // 시작 상태
+        if ch == 'a':
+          nextState = S1
+          print "'" + ch + "' 입력 -> S" + nextState
+          // S1에서 epsilon 전이로 S2로 자동 이동
+          currentState = S2
+          print "ε 전이 -> S" + currentState
+        else:
+          return false  // 거부
+          
+      else if currentState == S2:  // b* 시작 상태
+        if ch == 'b':
+          nextState = S3
+        else if ch == 'c':
+          nextState = S4
+        else:
+          return false  // 거부
+          
+      else if currentState == S3:  // 'b'를 1개 이상 읽은 상태
+        if ch == 'b':
+          nextState = S2  // S2로 돌아가서 루프
+        else if ch == 'c':
+          nextState = S4
+        else:
+          return false  // 거부
+          
+      else if currentState == S4:  // 수락 상태
+        return false  // 수락 후에는 더 이상 입력 불가
+      
+      // epsilon 전이가 아닌 경우만 출력
+      if not (currentState == S2 and ch == 'a'):
+        print "'" + ch + "' 입력 -> S" + nextState
+      
+      currentState = nextState
+    
+    // 최종 상태 확인
+    result = (currentState == S4)
+    print "최종 상태: S" + currentState + " -> " + (result ? "수락" : "거부")
+    
+    return result
+  끝
+
+// 고급 FSA 구조체 정의
+구조 Transition:
+  시작
+    fromState  // 시작 상태
+    symbol     // 전이 조건 (문자 또는 ε)
+    toState    // 다음 상태
+  끝
+
+구조 FSA:
+  시작
+    states[]         // 모든 상태들의 배열
+    numStates       // 상태 개수
+    transitions[]   // 전이 규칙들의 배열
+    numTransitions  // 전이 규칙 개수
+    startState      // 시작 상태
+    acceptStates[]  // 수락 상태들의 배열
+    numAcceptStates // 수락 상태 개수
+    alphabet[]      // 입력 알파벳
+    alphabetSize    // 알파벳 크기
+  끝
+
+함수 createExampleFSA():
+  시작
+    // 예시 FSA 생성: a(b)*c 패턴
+    fsa = 새로운 FSA
+    
+    // 상태 설정
+    fsa.states = [0, 1, 2, 3, 4]  // S0, S1, S2, S3, S4
+    fsa.numStates = 5
+    fsa.startState = 0
+    fsa.acceptStates = [4]
+    fsa.numAcceptStates = 1
+    fsa.alphabet = ['a', 'b', 'c']
+    fsa.alphabetSize = 3
+    
+    // 전이 규칙 정의
+    transitions = [
+      (0, 'a', 1),    // S0 --'a'--> S1
+      (1, 'ε', 2),    // S1 --ε--> S2 (epsilon 전이)
+      (2, 'b', 3),    // S2 --'b'--> S3
+      (3, 'b', 2),    // S3 --'b'--> S2 (루프백)
+      (3, 'c', 4),    // S3 --'c'--> S4 (수락)
+      (2, 'c', 4)     // S2 --'c'--> S4 (수락)
+    ]
+    
+    fsa.transitions = transitions
+    fsa.numTransitions = 6
+    
+    return fsa
+  끝
+
+함수 addTransition(fsa, fromState, symbol, toState):
+  시작
+    // FSA에 새로운 전이 규칙 추가
+    newTransition = 새로운 Transition
+    newTransition.fromState = fromState
+    newTransition.symbol = symbol
+    newTransition.toState = toState
+    
+    fsa.transitions[fsa.numTransitions] = newTransition
+    fsa.numTransitions = fsa.numTransitions + 1
+  끝
+
+함수 isAcceptState(fsa, state):
+  시작
+    // 주어진 상태가 수락 상태인지 확인
+    for i = 0 to fsa.numAcceptStates - 1:
+      if fsa.acceptStates[i] == state:
+        return true
+    
+    return false
+  끝
+
+함수 getTransitions(fsa, currentState, symbol):
+  시작
+    // 현재 상태에서 주어진 심볼로 전이 가능한 모든 다음 상태들 반환
+    nextStates = 빈 배열
+    count = 0
+    
+    for i = 0 to fsa.numTransitions - 1:
+      transition = fsa.transitions[i]
+      if transition.fromState == currentState and transition.symbol == symbol:
+        nextStates[count] = transition.toState
+        count = count + 1
+    
+    return nextStates, count
+  끝
+
+함수 acceptFSA(fsa, input):
+  시작
+    // 일반적인 FSA 수락 함수 (DFA용)
+    currentState = fsa.startState
+    
+    for i = 0 to length(input) - 1:
+      symbol = input[i]
+      found = false
+      
+      // 현재 상태에서 해당 심볼로의 전이 찾기
+      for j = 0 to fsa.numTransitions - 1:
+        transition = fsa.transitions[j]
+        if transition.fromState == currentState and transition.symbol == symbol:
+          currentState = transition.toState
+          found = true
+          break
+      
+      // 전이가 없으면 거부
+      if found == false:
+        return false
+    
+    // 최종 상태가 수락 상태인지 확인
+    return isAcceptState(fsa, currentState)
+  끝
+
+함수 printFSA(fsa):
+  시작
+    // FSA 구조를 출력
+    print "=== FSA 정보 ==="
+    print "상태 개수: " + fsa.numStates
+    print "시작 상태: S" + fsa.startState
+    print "수락 상태들: " + fsa.acceptStates
+    print ""
+    
+    print "전이 규칙들:"
+    for i = 0 to fsa.numTransitions - 1:
+      t = fsa.transitions[i]
+      print "  S" + t.fromState + " --'" + t.symbol + "'--> S" + t.toState
+    print ""
+  끝
+
+함수 simulateFSA(fsa, input):
+  시작
+    // FSA 실행 과정을 시뮬레이션하며 출력
+    print "=== FSA 시뮬레이션: '" + input + "' ==="
+    
+    currentState = fsa.startState
+    print "시작 상태: S" + currentState
+    
+    for i = 0 to length(input) - 1:
+      symbol = input[i]
+      nextState = -1
+      
+      // 전이 찾기
+      for j = 0 to fsa.numTransitions - 1:
+        transition = fsa.transitions[j]
+        if transition.fromState == currentState and transition.symbol == symbol:
+          nextState = transition.toState
+          break
+      
+      if nextState == -1:
+        print "입력: '" + symbol + "' -> 전이 불가능 (거부)"
+        return false
+      
+      print "입력: '" + symbol + "' -> S" + nextState
+      currentState = nextState
+    
+    // 최종 확인
+    accepted = isAcceptState(fsa, currentState)
+    print "최종 상태: S" + currentState + " -> " + (accepted ? "수락" : "거부")
+    
+    return accepted
+  끝
+
+// 메인 알고리즘
+함수 main():
+  시작
+    print "=== FSA (Finite State Automaton) 테스트 ==="
+    print ""
+    
+    // 간단한 버전 테스트
+    print "=== 간단한 FSA 테스트: a(b)*c 패턴 ==="
+    testCases = ["ac", "abc", "abbc", "abbbc", "ab", "bc", "aac"]
+    
+    for each testCase in testCases:
+      print "테스트: '" + testCase + "'"
+      result = accept(testCase)
+      print "결과: " + (result ? "✓ 수락" : "✗ 거부")
+      print ""
+    
+    // 일반적인 FSA 구조 테스트
+    print "=== 일반적인 FSA 구조 테스트 ==="
+    fsa = createExampleFSA()
+    printFSA(fsa)
+    
+    for each testCase in testCases:
+      result = acceptFSA(fsa, testCase)
+      print "입력: '" + testCase + "' -> " + (result ? "수락" : "거부")
+    print ""
+    
+    // 상세 시뮬레이션
+    print "=== 상세 시뮬레이션 ==="
+    simulationTests = ["ac", "abc", "ab"]
+    
+    for each testCase in simulationTests:
+      simulateFSA(fsa, testCase)
+      print ""
+    
+    print "테스트 완료"
+  끝
