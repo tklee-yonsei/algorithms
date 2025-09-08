@@ -1,0 +1,59 @@
+/**
+ * Greedy MST (Minimum Spanning Tree) 알고리즘 - Cut Property 기반
+ * 그래프에서 최소 신장 트리를 찾습니다.
+ * 
+ * 예제 그래프: 8개의 정점 (0-7)과 16개의 간선
+ * 간선 가중치는 이미지 표에 있는 값들을 100배로 변환한 정수값 사용
+ * 
+ * 시간 복잡도: O(V * E) - 각 단계에서 모든 간선을 검사
+ * 공간 복잡도: O(V + E) - 그래프 저장과 MST 집합을 위한 공간
+ */
+
+// === Cut Property 기반 Greedy MST 알고리즘 ===
+ALGORITHM GREEDY_MST(weighted_graph G)
+INPUT:
+    G: 연결된 가중치 그래프 (V개의 정점, E개의 간선)
+OUTPUT:
+    MST의 간선들과 총 가중치
+
+BEGIN
+    // 1. 초기화
+    MST = empty set                    // MST에 포함된 간선들
+    mst_vertices = empty set           // MST에 포함된 정점들
+    
+    // 2. 임의의 시작 정점 선택 (예: 정점 0)
+    start_vertex = 0
+    add start_vertex to mst_vertices
+    
+    // 3. MST 구성 메인 루프 (V-1개의 간선 필요)
+    WHILE |MST| < |V| - 1 DO
+        // 3-1. Cut을 찾기: MST에 포함된 정점들과 나머지 정점들을 분리
+        min_edge = NULL
+        min_weight = INFINITY
+        
+        // 3-2. Cut을 가로지르는 모든 간선 검사
+        FOR each edge (u, v, weight) in G DO
+            // u는 MST에 포함, v는 MST에 포함되지 않은 경우 (또는 그 반대)
+            IF (u in mst_vertices AND v not in mst_vertices) OR
+               (v in mst_vertices AND u not in mst_vertices) THEN
+                // 3-3. Cut을 가로지르는 간선들 중 최소 가중치 간선 찾기
+                IF weight < min_weight THEN
+                    min_weight = weight
+                    min_edge = (u, v, weight)
+                END IF
+            END IF
+        END FOR
+        
+        // 3-4. 최소 가중치 간선을 MST에 추가
+        IF min_edge ≠ NULL THEN
+            add min_edge to MST
+            add both endpoints of min_edge to mst_vertices
+            PRINT "Added edge: " + min_edge
+        ELSE
+            PRINT "Graph is not connected!"
+            BREAK
+        END IF
+    END WHILE
+    
+    RETURN MST
+END
