@@ -1,0 +1,236 @@
+/**
+ * 최소 힙 (Min Heap) 자료구조 - 배열 기반 이진 힙
+ * 완전 이진 트리의 성질을 만족하며, 부모 노드가 자식 노드보다 작거나 같습니다.
+ * 
+ * 배열 인덱스 관계:
+ * - 부모 인덱스: (i - 1) / 2
+ * - 왼쪽 자식: 2 * i + 1
+ * - 오른쪽 자식: 2 * i + 2
+ * 
+ * 시간 복잡도:
+ * - 삽입 (insert): O(log n)
+ * - 최솟값 추출 (extractMin): O(log n)
+ * - 최솟값 조회 (peek): O(1)
+ * 
+ * 공간 복잡도: O(n)
+ */
+
+// === 힙 자료구조 정의 ===
+STRUCTURE MinHeap
+  array: 정수 배열[MAX_SIZE]
+  size: 힙의 현재 크기
+  capacity: 힙의 최대 용량
+END STRUCTURE
+
+// === 힙 초기화 ===
+FUNCTION createHeap(capacity)
+INPUT: capacity - 힙의 최대 용량
+OUTPUT: 초기화된 힙 구조체
+BEGIN
+  heap = new MinHeap
+  heap.array = new array[capacity]
+  heap.size = 0
+  heap.capacity = capacity
+  RETURN heap
+END
+
+// === 부모/자식 인덱스 계산 함수들 ===
+FUNCTION getParentIndex(index)
+  RETURN (index - 1) / 2
+END
+
+FUNCTION getLeftChildIndex(index)
+  RETURN 2 * index + 1
+END
+
+FUNCTION getRightChildIndex(index)
+  RETURN 2 * index + 2
+END
+
+// === 두 원소 교환 ===
+FUNCTION swap(heap, index1, index2)
+BEGIN
+  temp = heap.array[index1]
+  heap.array[index1] = heap.array[index2]
+  heap.array[index2] = temp
+END
+
+// === 삽입 연산 ===
+FUNCTION insert(heap, newElement)
+INPUT: 
+  heap - 최소 힙
+  newElement - 삽입할 새 원소
+OUTPUT: 성공 여부
+BEGIN
+  // 1. 힙이 가득 찬 경우 확인
+  IF heap.size >= heap.capacity THEN
+    PRINT "Heap is full!"
+    RETURN FALSE
+  END IF
+  
+  // 2. 힙의 마지막에 새 원소 추가
+  heap.array[heap.size] = newElement
+  lastIndex = heap.size
+  heap.size = heap.size + 1
+  
+  PRINT "Inserted " + newElement + " at index " + lastIndex
+  
+  // 3. 힙 속성 복구 (상향 이동)
+  heapifyUp(heap, lastIndex)
+  
+  RETURN TRUE
+END
+
+// === 상향 힙 정리 (Heapify Up) ===
+FUNCTION heapifyUp(heap, index)
+INPUT:
+  heap - 최소 힙
+  index - 정리를 시작할 인덱스
+BEGIN
+  // 루트에 도달하면 종료
+  IF index = 0 THEN
+    RETURN
+  END IF
+  
+  parentIndex = getParentIndex(index)
+  
+  PRINT "Comparing " + heap.array[index] + " (index " + index + 
+        ") with parent " + heap.array[parentIndex] + " (index " + parentIndex + ")"
+  
+  // 현재 노드가 부모보다 작으면 교환
+  IF heap.array[index] < heap.array[parentIndex] THEN
+    PRINT "Swapping " + heap.array[index] + " with " + heap.array[parentIndex]
+    swap(heap, index, parentIndex)
+    
+    // 재귀적으로 부모 방향으로 계속 정리
+    heapifyUp(heap, parentIndex)
+  END IF
+END
+
+// === 최솟값 추출 ===
+FUNCTION extractMin(heap)
+INPUT: heap - 최소 힙
+OUTPUT: 최솟값 (힙이 비어있으면 오류값 반환)
+BEGIN
+  // 1. 빈 힙 확인
+  IF heap.size = 0 THEN
+    PRINT "Heap is empty!"
+    RETURN ERROR_VALUE
+  END IF
+  
+  // 2. 최솟값 저장 (루트)
+  minValue = heap.array[0]
+  
+  // 3. 마지막 원소를 루트로 이동
+  heap.array[0] = heap.array[heap.size - 1]
+  heap.size = heap.size - 1
+  
+  PRINT "Extracted min value: " + minValue
+  
+  // 4. 힙이 비어있지 않으면 힙 속성 복구 (하향 이동)
+  IF heap.size > 0 THEN
+    PRINT "Moving " + heap.array[0] + " to root, heapifying down"
+    heapifyDown(heap, 0)
+  END IF
+  
+  RETURN minValue
+END
+
+// === 하향 힙 정리 (Heapify Down) ===
+FUNCTION heapifyDown(heap, index)
+INPUT:
+  heap - 최소 힙
+  index - 정리를 시작할 인덱스
+BEGIN
+  minIndex = index
+  leftChild = getLeftChildIndex(index)
+  rightChild = getRightChildIndex(index)
+  
+  // 왼쪽 자식과 비교
+  IF leftChild < heap.size AND heap.array[leftChild] < heap.array[minIndex] THEN
+    minIndex = leftChild
+  END IF
+  
+  // 오른쪽 자식과 비교
+  IF rightChild < heap.size AND heap.array[rightChild] < heap.array[minIndex] THEN
+    minIndex = rightChild
+  END IF
+  
+  // 최솟값이 현재 노드가 아니면 교환 후 재귀
+  IF minIndex ≠ index THEN
+    PRINT "Swapping " + heap.array[index] + " (index " + index + 
+          ") with " + heap.array[minIndex] + " (index " + minIndex + ")"
+    swap(heap, index, minIndex)
+    
+    // 재귀적으로 자식 방향으로 계속 정리
+    heapifyDown(heap, minIndex)
+  END IF
+END
+
+// === 최솟값 조회 (추출하지 않고) ===
+FUNCTION peek(heap)
+INPUT: heap - 최소 힙
+OUTPUT: 최솟값 (힙이 비어있으면 오류값 반환)
+BEGIN
+  IF heap.size = 0 THEN
+    PRINT "Heap is empty!"
+    RETURN ERROR_VALUE
+  END IF
+  
+  RETURN heap.array[0]
+END
+
+// === 힙이 비어있는지 확인 ===
+FUNCTION isEmpty(heap)
+INPUT: heap - 최소 힙
+OUTPUT: 빈 힙이면 TRUE, 아니면 FALSE
+BEGIN
+  RETURN heap.size = 0
+END
+
+// === 힙 출력 ===
+FUNCTION printHeap(heap)
+INPUT: heap - 최소 힙
+BEGIN
+  IF heap.size = 0 THEN
+    PRINT "Heap is empty"
+    RETURN
+  END IF
+  
+  PRINT "Heap contents: ["
+  FOR i = 0 TO heap.size - 1 DO
+    PRINT heap.array[i]
+    IF i < heap.size - 1 THEN
+      PRINT ", "
+    END IF
+  END FOR
+  PRINT "]"
+  PRINT "Size: " + heap.size
+END
+
+// === 메인 알고리즘 예제 ===
+ALGORITHM HEAP_DEMO()
+BEGIN
+  PRINT "=== Min Heap Demo ==="
+  
+  // 힙 생성
+  heap = createHeap(10)
+  
+  // 원소들 삽입
+  elements = [4, 7, 2, 9, 1, 5, 8]
+  
+  PRINT "\n--- Insertion Phase ---"
+  FOR each element in elements DO
+    PRINT "\nInserting: " + element
+    insert(heap, element)
+    printHeap(heap)
+  END FOR
+  
+  PRINT "\n--- Extraction Phase ---"
+  WHILE NOT isEmpty(heap) DO
+    min = extractMin(heap)
+    PRINT "Extracted: " + min
+    printHeap(heap)
+    PRINT ""
+  END WHILE
+END
