@@ -1,0 +1,107 @@
+/**
+ * Prim MST (Minimum Spanning Tree) 알고리즘 - 우선순위 큐 기반
+ * 그래프에서 최소 신장 트리를 찾습니다.
+ * 
+ * 예제 그래프: 8개의 정점 (0-7)과 16개의 간선
+ * 간선 가중치는 이미지 표에 있는 값들을 100배로 변환한 정수값 사용
+ * 
+ * 시간 복잡도: O(E log V) - 우선순위 큐 사용
+ * 공간 복잡도: O(V + E) - 그래프 저장과 우선순위 큐
+ */
+
+// === Prim MST 알고리즘 ===
+ALGORITHM PRIM_MST(weighted_graph G, start_vertex s)
+INPUT:
+    G: 연결된 가중치 그래프 (V개의 정점, E개의 간선)
+    s: 시작 정점
+OUTPUT:
+    MST의 간선들과 총 가중치
+
+BEGIN
+    // 1. 초기화
+    MST = empty set                       // MST에 포함된 간선들
+    visited = array[V] initialized to FALSE    // 방문 여부 배열
+    key = array[V] initialized to INFINITY     // 각 정점의 최소 가중치
+    parent = array[V] initialized to -1        // MST에서의 부모 정점
+    
+    // 2. 시작 정점 설정
+    key[s] = 0                           // 시작 정점의 키 값을 0으로 설정
+    
+    // 3. 우선순위 큐 초기화 (최소 힙)
+    priority_queue = empty min-heap
+    FOR each vertex v in G DO
+        INSERT priority_queue, (key[v], v)
+    END FOR
+    
+    PRINT "Starting Prim MST from vertex " + s
+    
+    // 4. MST 구성 (V-1개의 간선 추가)
+    FOR i = 0 to V-1 DO
+        // 4-1. 방문하지 않은 정점 중 최소 키 값을 가진 정점 선택
+        u = EXTRACT_MIN(priority_queue)
+        
+        // 이미 방문한 정점이면 스킵 (우선순위 큐의 특성상 발생 가능)
+        IF visited[u] = TRUE THEN
+            CONTINUE
+        END IF
+        
+        // 4-2. 정점을 MST에 추가
+        visited[u] = TRUE
+        
+        IF parent[u] ≠ -1 THEN
+            add edge (parent[u], u, key[u]) to MST
+            PRINT "Added edge: " + (parent[u], u, key[u])
+        END IF
+        
+        // 4-3. 인접한 정점들의 키 값 업데이트
+        FOR each neighbor v of u DO
+            weight = weight of edge (u, v)
+            
+            // 방문하지 않았고, 더 작은 가중치를 가진 경우
+            IF visited[v] = FALSE AND weight < key[v] THEN
+                key[v] = weight
+                parent[v] = u
+                INSERT priority_queue, (key[v], v)  // 새로운 키 값으로 삽입
+                
+                PRINT "Updated key[" + v + "] = " + weight + " (via " + u + ")"
+            END IF
+        END FOR
+        
+        PRINT "Current MST vertices: " + visited_vertices
+        PRINT ""
+    END FOR
+    
+    RETURN MST
+END
+
+// === 간소화된 Prim 알고리즘 (배열 기반) ===
+ALGORITHM PRIM_MST_SIMPLE(adjacency_matrix G, start_vertex s)
+BEGIN
+    visited = array[V] initialized to FALSE
+    key = array[V] initialized to INFINITY
+    parent = array[V] initialized to -1
+    
+    key[s] = 0
+    
+    FOR i = 0 to V-1 DO
+        // 방문하지 않은 정점 중 최소 키 값 찾기
+        u = -1
+        FOR v = 0 to V-1 DO
+            IF visited[v] = FALSE AND (u = -1 OR key[v] < key[u]) THEN
+                u = v
+            END IF
+        END FOR
+        
+        visited[u] = TRUE
+        
+        // 인접한 정점들의 키 값 업데이트
+        FOR v = 0 to V-1 DO
+            IF G[u][v] ≠ 0 AND visited[v] = FALSE AND G[u][v] < key[v] THEN
+                key[v] = G[u][v]
+                parent[v] = u
+            END IF
+        END FOR
+    END FOR
+    
+    RETURN MST constructed from parent array
+END
