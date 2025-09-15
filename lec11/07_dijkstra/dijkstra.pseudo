@@ -1,0 +1,158 @@
+/**
+ * Dijkstra 최단 경로 알고리즘 - 우선순위 큐 기반
+ * 가중치 있는 방향 그래프에서 한 정점으로부터 모든 정점까지의 최단 경로를 찾습니다.
+ * 
+ * 전제조건: 모든 간선의 가중치는 0 이상이어야 함 (음의 가중치 불허)
+ * 
+ * 예제 그래프: 8개의 정점 (0-7)과 16개의 간선
+ * 간선 가중치는 이미지 표에 있는 값들을 100배로 변환한 정수값 사용
+ * 
+ * 시간 복잡도: O(E log V) - 우선순위 큐 사용
+ * 공간 복잡도: O(V + E) - 그래프 저장과 우선순위 큐
+ */
+
+// === Dijkstra 최단 경로 알고리즘 ===
+ALGORITHM DIJKSTRA_SHORTEST_PATH(weighted_graph G, start_vertex s)
+INPUT:
+    G: 가중치 있는 방향 그래프 (V개의 정점, E개의 간선)
+    s: 시작 정점
+OUTPUT:
+    모든 정점까지의 최단 거리와 경로
+
+BEGIN
+    // 1. 초기화
+    dist = array[V] initialized to INFINITY      // 각 정점까지의 최단 거리
+    parent = array[V] initialized to -1          // 최단 경로에서의 부모 정점
+    visited = array[V] initialized to FALSE      // 방문 여부 배열
+    
+    // 2. 시작 정점 설정
+    dist[s] = 0                                 // 시작 정점의 거리는 0
+    
+    // 3. 우선순위 큐 초기화 (최소 힙)
+    priority_queue = empty min-heap
+    FOR each vertex v in G DO
+        INSERT priority_queue, (dist[v], v)
+    END FOR
+    
+    PRINT "Starting Dijkstra from vertex " + s
+    
+    // 4. 최단 경로 탐색
+    WHILE priority_queue is not empty DO
+        // 4-1. 방문하지 않은 정점 중 최소 거리를 가진 정점 선택
+        (current_dist, u) = EXTRACT_MIN(priority_queue)
+        
+        // 이미 방문한 정점이면 스킵
+        IF visited[u] = TRUE THEN
+            CONTINUE
+        END IF
+        
+        // 4-2. 정점 u를 방문 처리
+        visited[u] = TRUE
+        PRINT "Visit vertex " + u + " with distance " + dist[u]
+        
+        // 4-3. 목표 정점에 도달했다면 종료 (단일 목표 탐색 시)
+        // IF u = target THEN
+        //     BREAK
+        // END IF
+        
+        // 4-4. 인접한 정점들의 거리 업데이트 (Relaxation)
+        FOR each neighbor v of u DO
+            edge_weight = weight of edge (u, v)
+            tentative_distance = dist[u] + edge_weight
+            
+            // 더 짧은 경로를 발견한 경우
+            IF visited[v] = FALSE AND tentative_distance < dist[v] THEN
+                dist[v] = tentative_distance
+                parent[v] = u
+                INSERT priority_queue, (dist[v], v)  // 새로운 거리로 삽입
+                
+                PRINT "Updated dist[" + v + "] = " + dist[v] + " (via " + u + ")"
+            END IF
+        END FOR
+        
+        PRINT "Current distances: " + dist
+        PRINT ""
+    END WHILE
+    
+    RETURN (dist, parent)
+END
+
+// === 간소화된 Dijkstra 알고리즘 (배열 기반) ===
+ALGORITHM DIJKSTRA_SIMPLE(adjacency_matrix G, start_vertex s)
+BEGIN
+    dist = array[V] initialized to INFINITY
+    parent = array[V] initialized to -1
+    visited = array[V] initialized to FALSE
+    
+    dist[s] = 0
+    
+    FOR i = 0 to V-1 DO
+        // 방문하지 않은 정점 중 최소 거리 찾기
+        u = -1
+        FOR v = 0 to V-1 DO
+            IF visited[v] = FALSE AND (u = -1 OR dist[v] < dist[u]) THEN
+                u = v
+            END IF
+        END FOR
+        
+        // 모든 정점을 방문했거나 도달 불가능한 경우
+        IF dist[u] = INFINITY THEN
+            BREAK
+        END IF
+        
+        visited[u] = TRUE
+        
+        // 인접한 정점들의 거리 업데이트
+        FOR v = 0 to V-1 DO
+            IF G[u][v] > 0 AND visited[v] = FALSE THEN
+                tentative_distance = dist[u] + G[u][v]
+                IF tentative_distance < dist[v] THEN
+                    dist[v] = tentative_distance
+                    parent[v] = u
+                END IF
+            END IF
+        END FOR
+    END FOR
+    
+    RETURN (dist, parent)
+END
+
+// === 경로 재구성 함수 ===
+ALGORITHM RECONSTRUCT_PATH(parent_array parent, start_vertex s, target_vertex t)
+BEGIN
+    IF parent[t] = -1 AND t ≠ s THEN
+        RETURN "No path exists"
+    END IF
+    
+    path = empty list
+    current = t
+    
+    WHILE current ≠ -1 DO
+        ADD current to front of path
+        current = parent[current]
+    END WHILE
+    
+    RETURN path
+END
+
+// === 사용 예제 ===
+ALGORITHM DIJKSTRA_EXAMPLE()
+BEGIN
+    graph = create weighted directed graph
+    start_vertex = 0
+    target_vertex = 6
+    
+    (distances, parents) = DIJKSTRA_SHORTEST_PATH(graph, start_vertex)
+    
+    PRINT "Shortest distances from vertex " + start_vertex + ":"
+    FOR each vertex v DO
+        IF distances[v] = INFINITY THEN
+            PRINT "Vertex " + v + ": unreachable"
+        ELSE
+            PRINT "Vertex " + v + ": " + distances[v]
+        END IF
+    END FOR
+    
+    shortest_path = RECONSTRUCT_PATH(parents, start_vertex, target_vertex)
+    PRINT "Shortest path to vertex " + target_vertex + ": " + shortest_path
+END

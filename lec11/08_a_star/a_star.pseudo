@@ -1,0 +1,177 @@
+/**
+ * A* 최단 경로 알고리즘 - 휴리스틱 기반 탐색
+ * 다익스트라 알고리즘에 휴리스틱 함수를 추가하여 목표 지향적 탐색을 수행합니다.
+ * 
+ * 전제조건: 
+ * - 모든 간선의 가중치는 0 이상
+ * - 휴리스틱 함수는 admissible해야 함 (실제 거리를 과대평가하지 않음)
+ * 
+ * 예제 그래프: 8개의 정점 (0-7)과 16개의 간선
+ * 시작 정점: 0, 목표 정점: 6
+ * 휴리스틱 값: 각 정점에서 목표 정점까지의 추정 거리
+ * 
+ * 시간 복잡도: O(b^d) where b=branching factor, d=depth
+ * 공간 복잡도: O(b^d) - open과 closed list 저장
+ */
+
+// === A* 최단 경로 알고리즘 ===
+ALGORITHM A_STAR_SEARCH(weighted_graph G, start_vertex s, goal_vertex goal, heuristic_function h)
+INPUT:
+    G: 가중치 있는 그래프 (V개의 정점, E개의 간선)
+    s: 시작 정점
+    goal: 목표 정점  
+    h: 휴리스틱 함수 (각 정점에서 목표까지의 추정 거리)
+OUTPUT:
+    최단 경로와 총 거리
+
+BEGIN
+    // 1. 초기화
+    open_list = empty priority queue (min-heap)    // 탐색 대기 목록
+    closed_list = empty set                        // 탐색 완료 목록
+    g_score = map initialized to INFINITY          // 시작점에서 각 정점까지의 실제 거리
+    f_score = map initialized to INFINITY          // f(n) = g(n) + h(n)
+    came_from = map initialized to empty           // 경로 추적용 부모 정점
+    
+    // 2. 시작 정점 설정
+    g_score[s] = 0
+    f_score[s] = h(s)
+    INSERT open_list, (f_score[s], s)
+    
+    PRINT "Starting A* search from " + s + " to " + goal
+    PRINT "Initial heuristic h(" + s + ") = " + h(s)
+    
+    // 3. A* 탐색 메인 루프
+    WHILE open_list is not empty DO
+        // 3-1. f값이 가장 작은 정점 선택
+        (current_f, current) = EXTRACT_MIN(open_list)
+        
+        PRINT "Exploring vertex " + current + " with f=" + current_f
+        
+        // 3-2. 목표에 도달했는지 확인
+        IF current = goal THEN
+            PRINT "Goal reached! Reconstructing path..."
+            RETURN RECONSTRUCT_PATH(came_from, current)
+        END IF
+        
+        // 3-3. 현재 정점을 closed list에 추가
+        ADD current to closed_list
+        
+        // 3-4. 인접한 정점들 탐색
+        FOR each neighbor of current DO
+            // 이미 탐색 완료된 정점은 스킵
+            IF neighbor in closed_list THEN
+                CONTINUE
+            END IF
+            
+            // 임시 g 점수 계산
+            tentative_g_score = g_score[current] + weight(current, neighbor)
+            
+            PRINT "  Checking neighbor " + neighbor + 
+                  " with tentative g=" + tentative_g_score
+            
+            // 더 나은 경로를 발견했거나 처음 방문하는 정점인 경우
+            IF neighbor not in g_score OR tentative_g_score < g_score[neighbor] THEN
+                // 경로 정보 업데이트
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = g_score[neighbor] + h(neighbor)
+                
+                PRINT "    Updated: g(" + neighbor + ")=" + g_score[neighbor] +
+                      ", h(" + neighbor + ")=" + h(neighbor) +
+                      ", f(" + neighbor + ")=" + f_score[neighbor]
+                
+                // open list에 추가 (이미 있으면 우선순위 업데이트)
+                IF neighbor not in open_list THEN
+                    INSERT open_list, (f_score[neighbor], neighbor)
+                    PRINT "    Added to open list"
+                ELSE
+                    UPDATE_PRIORITY open_list, neighbor, f_score[neighbor]
+                    PRINT "    Updated priority in open list"
+                END IF
+            END IF
+        END FOR
+        
+        PRINT "Current open list: " + open_list
+        PRINT ""
+    END WHILE
+    
+    // 경로를 찾지 못한 경우
+    PRINT "No path found from " + s + " to " + goal
+    RETURN NULL
+END
+
+// === 경로 재구성 함수 ===
+ALGORITHM RECONSTRUCT_PATH(came_from_map came_from, current_vertex current)
+BEGIN
+    total_path = [current]
+    
+    WHILE current in came_from DO
+        current = came_from[current]
+        INSERT current at beginning of total_path
+    END WHILE
+    
+    RETURN total_path
+END
+
+// === 휴리스틱 함수 예시 ===
+ALGORITHM MANHATTAN_DISTANCE(vertex a, vertex b, coordinate_map coords)
+BEGIN
+    RETURN |coords[a].x - coords[b].x| + |coords[a].y - coords[b].y|
+END
+
+ALGORITHM EUCLIDEAN_DISTANCE(vertex a, vertex b, coordinate_map coords)
+BEGIN
+    dx = coords[a].x - coords[b].x
+    dy = coords[a].y - coords[b].y
+    RETURN sqrt(dx * dx + dy * dy)
+END
+
+ALGORITHM CHEBYSHEV_DISTANCE(vertex a, vertex b, coordinate_map coords)
+BEGIN
+    dx = |coords[a].x - coords[b].x|
+    dy = |coords[a].y - coords[b].y|
+    RETURN max(dx, dy)
+END
+
+// === 사용 예제 ===
+ALGORITHM A_STAR_EXAMPLE()
+BEGIN
+    graph = create weighted graph with coordinates
+    start_vertex = 0
+    goal_vertex = 6
+    
+    // 휴리스틱 함수 정의 (goal까지의 맨하탄 거리)
+    FUNCTION heuristic(vertex v)
+        RETURN MANHATTAN_DISTANCE(v, goal_vertex, vertex_coordinates)
+    END FUNCTION
+    
+    // A* 탐색 실행
+    path = A_STAR_SEARCH(graph, start_vertex, goal_vertex, heuristic)
+    
+    IF path ≠ NULL THEN
+        PRINT "Shortest path found: " + path
+        total_cost = calculate_path_cost(graph, path)
+        PRINT "Total cost: " + total_cost
+    ELSE
+        PRINT "No path exists"
+    END IF
+END
+
+// === 휴리스틱 함수 검증 ===
+ALGORITHM VERIFY_ADMISSIBLE_HEURISTIC(graph G, goal_vertex goal, heuristic_function h)
+BEGIN
+    FOR each vertex v in G DO
+        actual_distance = DIJKSTRA_DISTANCE(G, v, goal)
+        heuristic_estimate = h(v)
+        
+        IF heuristic_estimate > actual_distance THEN
+            PRINT "WARNING: Heuristic is not admissible for vertex " + v
+            PRINT "h(" + v + ") = " + heuristic_estimate + 
+                  " > actual distance = " + actual_distance
+            RETURN FALSE
+        END IF
+    END FOR
+    
+    PRINT "Heuristic function is admissible"
+    RETURN TRUE
+END

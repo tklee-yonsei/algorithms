@@ -1,0 +1,103 @@
+/**
+ * DFS (Depth-First Search) 알고리즘
+ * 그래프에서 깊이 우선 탐색을 수행합니다.
+ * 
+ * 시간 복잡도: O(V + E) - V는 정점 수, E는 간선 수
+ * 공간 복잡도: O(V) - 스택과 방문 배열을 위한 공간
+ */
+
+// === 반복적 구현 (Iterative) ===
+ALGORITHM DFS_ITERATIVE(graph G, start_vertex s)
+INPUT:
+    G: 그래프 (인접 리스트로 표현)
+    s: 시작 정점
+OUTPUT:
+    모든 정점을 DFS 순서로 방문
+
+BEGIN
+    // 1. 초기화
+    FOR each vertex v in G DO
+        mark v as unexplored
+    END FOR
+    
+    // 2. 스택 초기화
+    CREATE empty stack S
+    push s into S
+    
+    // 3. DFS 메인 루프
+    WHILE S is not empty DO
+        v = pop from S
+        
+        IF v is unexplored THEN
+            mark v as explored
+            PRINT v  // 방문한 정점 출력
+            
+            // 인접 정점들을 역순으로 스택에 추가 (일관된 순서를 위해)
+            FOR each edge (v, w) in G in reverse order DO
+                IF w is unexplored THEN
+                    push w into S
+                END IF
+            END FOR
+        END IF
+    END WHILE
+END
+
+// === 재귀적 구현 (Recursive) ===
+ALGORITHM DFS_RECURSIVE(graph G, start_vertex s)
+INPUT:
+    G: 그래프 (인접 리스트로 표현)
+    s: 시작 정점
+OUTPUT:
+    모든 정점을 DFS 순서로 방문
+
+BEGIN
+    // 1. 초기화
+    FOR each vertex v in G DO
+        mark v as unexplored
+    END FOR
+    
+    // 2. 재귀 호출 시작
+    DFS_VISIT(G, s)
+END
+
+ALGORITHM DFS_VISIT(graph G, vertex v)
+BEGIN
+    mark v as explored
+    PRINT v  // 방문한 정점 출력
+    
+    // 현재 정점의 모든 인접 정점에 대해 재귀 호출
+    FOR each edge (v, w) in G DO
+        IF w is unexplored THEN
+            DFS_VISIT(G, w)
+        END IF
+    END FOR
+END
+
+/**
+ * 그래프 표현 예시:
+ * 
+ * 인접 리스트로 표현된 그래프:
+ * 0: [1, 2]
+ * 1: [0, 3, 4]  
+ * 2: [0, 5, 6]
+ * 3: [1]
+ * 4: [1]
+ * 5: [2]
+ * 6: [2]
+ * 
+ * DFS_RECURSIVE(G, 0)의 실행 과정:
+ * 1. DFS_VISIT(0): 0 explored, 출력 0
+ * 2. DFS_VISIT(1): 1 explored, 출력 1
+ * 3. DFS_VISIT(3): 3 explored, 출력 3 (더 이상 unexplored 인접 정점 없음)
+ * 4. DFS_VISIT(4): 4 explored, 출력 4 (더 이상 unexplored 인접 정점 없음)
+ * 5. DFS_VISIT(2): 2 explored, 출력 2
+ * 6. DFS_VISIT(5): 5 explored, 출력 5 (더 이상 unexplored 인접 정점 없음)
+ * 7. DFS_VISIT(6): 6 explored, 출력 6 (더 이상 unexplored 인접 정점 없음)
+ * 
+ * 방문 순서: 0 -> 1 -> 3 -> 4 -> 2 -> 5 -> 6
+ * 
+ * DFS vs BFS 비교:
+ * - DFS: 깊이 우선 - 한 경로를 끝까지 탐색 후 백트래킹
+ * - BFS: 너비 우선 - 레벨별로 모든 정점을 탐색
+ * - DFS는 스택(또는 재귀), BFS는 큐를 사용
+ */

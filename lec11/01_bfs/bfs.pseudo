@@ -1,0 +1,63 @@
+/**
+ * BFS (Breadth-First Search) 알고리즘
+ * 그래프에서 너비 우선 탐색을 수행합니다.
+ * 
+ * 시간 복잡도: O(V + E) - V는 정점 수, E는 간선 수
+ * 공간 복잡도: O(V) - 큐와 방문 배열을 위한 공간
+ */
+
+ALGORITHM BFS(graph G, start_vertex s)
+INPUT:
+    G: 그래프 (인접 리스트로 표현)
+    s: 시작 정점
+OUTPUT:
+    모든 정점을 BFS 순서로 방문
+
+BEGIN
+    // 1. 초기화
+    FOR each vertex v in G DO
+        mark v as unexplored
+    END FOR
+    
+    // 2. 시작 정점 처리
+    mark s as explored
+    CREATE empty queue Q
+    enqueue s into Q
+    PRINT s  // 방문한 정점 출력
+    
+    // 3. BFS 메인 루프
+    WHILE Q is not empty DO
+        v = dequeue from Q
+        
+        // 현재 정점 v의 모든 인접 정점 확인
+        FOR each edge (v, w) in G DO
+            IF w is unexplored THEN
+                mark w as explored
+                enqueue w into Q
+                PRINT w  // 방문한 정점 출력
+            END IF
+        END FOR
+    END WHILE
+END
+
+/**
+ * 그래프 표현 예시:
+ * 
+ * 인접 리스트로 표현된 그래프:
+ * 0: [1, 2]
+ * 1: [0, 3, 4]  
+ * 2: [0, 5, 6]
+ * 3: [1]
+ * 4: [1]
+ * 5: [2]
+ * 6: [2]
+ * 
+ * BFS(G, 0)의 실행 과정:
+ * 1. 시작: explored = {0}, Q = [0]
+ * 2. v=0 처리: explored = {0,1,2}, Q = [1,2]
+ * 3. v=1 처리: explored = {0,1,2,3,4}, Q = [2,3,4]
+ * 4. v=2 처리: explored = {0,1,2,3,4,5,6}, Q = [3,4,5,6]
+ * 5. v=3,4,5,6 순서로 처리 (인접 정점들이 모두 이미 explored)
+ * 
+ * 방문 순서: 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6
+ */
