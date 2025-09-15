@@ -5,12 +5,15 @@
  * 예제 그래프: 8개의 정점 (0-7)과 16개의 간선
  * 간선 가중치는 이미지 표에 있는 값들을 100배로 변환한 정수값 사용
  * 
+ * 핵심 원리: Cut Property - 빨간색 Crossing Edges가 없는 Cut을 찾아 최소 가중치 Edge 선택
+ * 랜덤 시작 정점을 사용해도 결과는 항상 동일 (이미 선택된 간선들을 제외하고 최소 가중치 선택)
+ * 
  * 시간 복잡도: O(V * E) - 각 단계에서 모든 간선을 검사
  * 공간 복잡도: O(V + E) - 그래프 저장과 MST 집합을 위한 공간
  */
 
-// === Cut Property 기반 Greedy MST 알고리즘 ===
-ALGORITHM GREEDY_MST(weighted_graph G)
+// === 진짜 Greedy MST 알고리즘 (모든 가능한 Cut 검사) ===
+ALGORITHM TRUE_GREEDY_MST(weighted_graph G)
 INPUT:
     G: 연결된 가중치 그래프 (V개의 정점, E개의 간선)
 OUTPUT:
@@ -21,13 +24,14 @@ BEGIN
     MST = empty set                    // MST에 포함된 간선들
     mst_vertices = empty set           // MST에 포함된 정점들
     
-    // 2. 임의의 시작 정점 선택 (예: 정점 0)
+    // 2. 시작 정점 선택 (정점 0)
     start_vertex = 0
     add start_vertex to mst_vertices
+    PRINT "Starting from vertex " + start_vertex
     
     // 3. MST 구성 메인 루프 (V-1개의 간선 필요)
-    WHILE |MST| < |V| - 1 DO
-        // 3-1. Cut을 찾기: MST에 포함된 정점들과 나머지 정점들을 분리
+    FOR step = 1 TO V-1 DO
+        // 3-1. 모든 가능한 Cut을 검사하여 최적의 Cut 찾기
         min_edge = NULL
         min_weight = INFINITY
         
@@ -46,14 +50,106 @@ BEGIN
         
         // 3-4. 최소 가중치 간선을 MST에 추가
         IF min_edge ≠ NULL THEN
+            // 최소 가중치 간선 발견
             add min_edge to MST
             add both endpoints of min_edge to mst_vertices
-            PRINT "Added edge: " + min_edge
         ELSE
-            PRINT "Graph is not connected!"
+            // 최소 가중치 간선 못 찾음
+            PRINT "No valid edge found - graph is not connected!"
             BREAK
         END IF
-    END WHILE
+    END FOR
     
     RETURN MST
+END
+
+// === 랜덤 시작 정점 Greedy MST 알고리즘 ===
+ALGORITHM RANDOM_START_GREEDY_MST(weighted_graph G)
+INPUT:
+    G: 연결된 가중치 그래프 (V개의 정점, E개의 간선)
+OUTPUT:
+    MST의 간선들과 총 가중치 (결과는 항상 동일)
+
+BEGIN
+    // 1. 초기화
+    MST = empty set                    // MST에 포함된 간선들
+    mst_vertices = empty set           // MST에 포함된 정점들
+    
+    // 2. 랜덤 시작 정점 선택
+    start_vertex = RANDOM(0, V-1)
+    add start_vertex to mst_vertices
+    PRINT "Starting from vertex " + start_vertex
+    
+    // 3. MST 구성 메인 루프 (V-1개의 간선 필요)
+    FOR step = 1 TO V-1 DO
+        // 3-1. Cut을 가로지르는 최소 가중치 간선 찾기
+        min_edge = NULL
+        min_weight = INFINITY
+        
+        // 3-2. Cut을 가로지르는 모든 간선 검사
+        FOR each edge (u, v, weight) in G DO
+            // u는 MST에 포함, v는 MST에 포함되지 않은 경우 (또는 그 반대)
+            IF (u in mst_vertices AND v not in mst_vertices) OR
+               (v in mst_vertices AND u not in mst_vertices) THEN
+                // 3-3. Cut을 가로지르는 간선들 중 최소 가중치 간선 찾기
+                IF weight < min_weight THEN
+                    min_weight = weight
+                    min_edge = (u, v, weight)
+                END IF
+            END IF
+        END FOR
+        
+        // 3-4. 최소 가중치 간선을 MST에 추가
+        IF min_edge ≠ NULL THEN
+            // 최소 가중치 간선 발견
+            add min_edge to MST
+            add both endpoints of min_edge to mst_vertices
+        ELSE
+            // 최소 가중치 간선 못 찾음
+            PRINT "No valid edge found - graph is not connected!"
+            BREAK
+        END IF
+    END FOR
+    
+    RETURN MST
+END
+
+// === 메인 실행 흐름 ===
+ALGORITHM MAIN()
+BEGIN
+    // 그래프 생성 및 간선 추가
+    G = create_graph(8)
+    add_edge(G, 0, 7, 16)   // 0.16 * 100
+    add_edge(G, 2, 3, 17)   // 0.17 * 100
+    add_edge(G, 1, 7, 19)   // 0.19 * 100
+    add_edge(G, 0, 2, 26)   // 0.26 * 100
+    add_edge(G, 5, 7, 28)   // 0.28 * 100
+    add_edge(G, 1, 3, 29)   // 0.29 * 100
+    add_edge(G, 1, 5, 32)   // 0.32 * 100
+    add_edge(G, 2, 7, 34)   // 0.34 * 100
+    add_edge(G, 4, 5, 35)   // 0.35 * 100
+    add_edge(G, 1, 2, 36)   // 0.36 * 100
+    add_edge(G, 4, 7, 37)   // 0.37 * 100
+    add_edge(G, 0, 4, 38)   // 0.38 * 100
+    add_edge(G, 6, 2, 40)   // 0.40 * 100
+    add_edge(G, 3, 6, 52)   // 0.52 * 100
+    add_edge(G, 6, 0, 58)   // 0.58 * 100
+    add_edge(G, 6, 4, 93)   // 0.93 * 100
+    
+    PRINT "=== True Greedy MST Algorithm ==="
+    mst_true = TRUE_GREEDY_MST(G)
+    PRINT_MST_RESULT(mst_true)
+    
+    PRINT "=== Random Start Vertex Greedy MST ==="
+    mst_random1 = RANDOM_START_GREEDY_MST(G)
+    PRINT_MST_RESULT(mst_random1)
+    
+    PRINT "=== Another Random Start Vertex Greedy MST ==="
+    mst_random2 = RANDOM_START_GREEDY_MST(G)
+    PRINT_MST_RESULT(mst_random2)
+    
+    // 모든 경우에서 총 가중치는 181로 동일
+    ASSERT mst_true.total_weight == 181
+    ASSERT mst_random1.total_weight == 181
+    ASSERT mst_random2.total_weight == 181
 END

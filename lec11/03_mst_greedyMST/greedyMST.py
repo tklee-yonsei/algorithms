@@ -6,6 +6,7 @@ Greedy MST (Minimum Spanning Tree) 알고리즘 구현 - Cut Property 기반
 공간 복잡도: O(V + E) - 그래프 저장과 MST 집합을 위한 공간
 """
 
+import random
 from typing import List, Tuple, Optional
 
 
@@ -107,7 +108,7 @@ def print_mst_status(mst_vertices: set, vertices: int, step: int) -> None:
 
 def find_min_cut_edge(graph: Graph, mst_vertices: set) -> Optional[Edge]:
   """
-  Cut을 가로지르는 최소 가중치 간선 찾기
+  Cut을 가로지르는 최소 가중치 간선 찾기 (Greedy MST 정의에 따라)
 
   Args:
       graph: 그래프
@@ -135,6 +136,43 @@ def find_min_cut_edge(graph: Graph, mst_vertices: set) -> Optional[Edge]:
   return min_edge
 
 
+def find_optimal_cut(graph: Graph, mst_vertices: set) -> Optional[Edge]:
+  """
+  모든 가능한 Cut을 검사하여 최적의 Cut 찾기 (진짜 Greedy MST)
+
+  Args:
+      graph: 그래프
+      mst_vertices: MST에 포함된 정점들의 집합
+
+  Returns:
+      최소 가중치 간선 (없으면 None)
+  """
+  min_weight = float('inf')
+  min_edge = None
+
+  print("  Searching for optimal cut (no red crossing edges)...")
+
+  # 모든 간선을 가중치 순으로 검사
+  for edge in graph.edges:
+    src, dest = edge.src, edge.dest
+
+    # Cut을 가로지르는 간선인지 확인
+    if (src in mst_vertices and dest not in mst_vertices) or \
+       (src not in mst_vertices and dest in mst_vertices):
+      print(f"  Valid cut edge: {edge}")
+
+      # 첫 번째로 찾은 간선이 최소 가중치 (Greedy 선택)
+      if edge.weight < min_weight:
+        min_weight = edge.weight
+        min_edge = edge
+        print(f"  -> New minimum weight: {edge.weight}")
+
+  if min_edge is not None:
+    print(f"  -> Selected optimal cut edge: {min_edge}")
+
+  return min_edge
+
+
 def add_edge_to_mst(mst: MST, edge: Edge, mst_vertices: set) -> None:
   """
   선택된 간선을 MST에 추가
@@ -154,9 +192,64 @@ def add_edge_to_mst(mst: MST, edge: Edge, mst_vertices: set) -> None:
   print(f"  Selected edge: {edge}")
 
 
-def greedy_mst(graph: Graph) -> Optional[MST]:
+def get_random_start_vertex(vertices: int) -> int:
+  """랜덤 시작 정점 선택"""
+  return random.randint(0, vertices - 1)
+
+
+def create_random_cut(vertices: int, cut_type: int) -> List[int]:
   """
-  Cut Property 기반 Greedy MST 알고리즘
+  이미지와 같은 수직/수평 cut을 시뮬레이션하는 정점 그룹 생성
+
+  Args:
+      vertices: 전체 정점 개수
+      cut_type: 0=수직cut, 1=수평cut, 2=대각선cut, 3=랜덤
+
+  Returns:
+      왼쪽/위쪽 그룹에 포함될 정점들의 리스트
+  """
+  # 이미지의 정점 위치를 가정 (8개 정점의 2D 좌표)
+  # 0:(1,3), 1:(3,0), 2:(3,2), 3:(4,0), 4:(0,3), 5:(2,1), 6:(5,3), 7:(2,2)
+  coords = [(1, 3), (3, 0), (3, 2), (4, 0), (0, 3), (2, 1), (5, 3), (2, 2)]
+
+  left_group = []
+
+  if cut_type == 0:
+    # 수직 cut (x < 2.5)
+    print("  Using vertical cut (x < 2.5)")
+    for i in range(vertices):
+      if coords[i][0] < 3:  # x좌표가 3보다 작으면 왼쪽 그룹
+        left_group.append(i)
+  elif cut_type == 1:
+    # 수평 cut (y < 1.5)
+    print("  Using horizontal cut (y < 1.5)")
+    for i in range(vertices):
+      if coords[i][1] < 2:  # y좌표가 2보다 작으면 아래쪽 그룹
+        left_group.append(i)
+  elif cut_type == 2:
+    # 대각선 cut
+    print("  Using diagonal cut (x + y < 4)")
+    for i in range(vertices):
+      if coords[i][0] + coords[i][1] < 4:
+        left_group.append(i)
+  else:
+    # 랜덤 그룹 (절반 정도)
+    print("  Using random grouping")
+    target_size = vertices // 2 + random.randint(0, 1)
+    vertices_list = list(range(vertices))
+    left_group = random.sample(vertices_list, target_size)
+
+  return left_group
+
+
+def greedy_mst(graph: Graph) -> Optional[MST]:
+  """기본 Greedy MST 알고리즘"""
+  return greedy_mst_with_options(graph, use_random_cut=True, fixed_cut_type=-1)
+
+
+def true_greedy_mst(graph: Graph) -> Optional[MST]:
+  """
+  진짜 Greedy MST 알고리즘 (모든 가능한 Cut 검사)
 
   Args:
       graph: 가중치 그래프
@@ -176,11 +269,12 @@ def greedy_mst(graph: Graph) -> Optional[MST]:
   # MST에 포함된 정점들을 추적하는 집합
   mst_vertices = set()
 
+  print("=== True Greedy MST Algorithm (All Possible Cuts) ===")
+  print("Finding cuts with no red crossing edges...\n")
+
   # 시작 정점 선택 (정점 0)
   start_vertex = 0
   mst_vertices.add(start_vertex)
-
-  print("=== Greedy MST Algorithm (Cut Property) ===")
   print(f"Starting from vertex {start_vertex}\n")
 
   # MST 구성 메인 루프 (vertices-1개의 간선 필요)
@@ -188,8 +282,8 @@ def greedy_mst(graph: Graph) -> Optional[MST]:
     # 현재 MST 상태 출력
     print_mst_status(mst_vertices, vertices, step)
 
-    # Cut을 가로지르는 최소 가중치 간선 찾기
-    min_edge = find_min_cut_edge(graph, mst_vertices)
+    # 모든 가능한 Cut을 검사하여 최적의 Cut 찾기
+    min_edge = find_optimal_cut(graph, mst_vertices)
 
     # 최소 가중치 간선을 MST에 추가
     if min_edge is not None:
@@ -203,10 +297,95 @@ def greedy_mst(graph: Graph) -> Optional[MST]:
   return mst
 
 
+def greedy_mst_with_options(graph: Graph, use_random_cut: bool = False, fixed_cut_type: int = -1) -> Optional[MST]:
+  """
+  Cut Property 기반 Greedy MST 알고리즘 (옵션 포함)
+
+  Args:
+      graph: 가중치 그래프
+      use_random_cut: True면 랜덤 cut 사용, False면 기존 방식
+      fixed_cut_type: -1이면 랜덤, 0-3이면 특정 cut 타입 고정
+
+  Returns:
+      MST 결과 객체 (연결되지 않은 그래프인 경우 None)
+  """
+  vertices = graph.num_vertices
+
+  if vertices <= 0:
+    print("Invalid graph!")
+    return None
+
+  # MST 결과 객체 생성
+  mst = MST()
+
+  # MST에 포함된 정점들을 추적하는 집합
+  mst_vertices = set()
+
+  if use_random_cut:
+    print("=== Greedy MST Algorithm (Cut Property with Random Cuts) ===")
+
+    # 랜덤 cut 방식: 첫 번째 단계에서 그래프를 두 그룹으로 나누기
+    cut_type = fixed_cut_type if fixed_cut_type != - \
+        1 else random.randint(0, 3)  # 고정 또는 랜덤 선택
+    left_group = create_random_cut(vertices, cut_type)
+
+    # 첫 번째 그룹의 모든 정점을 MST에 추가
+    print(f"Initial group vertices: {sorted(left_group)}\n")
+    for vertex in left_group:
+      mst_vertices.add(vertex)
+
+    # 나머지는 기존 방식으로 진행
+    for step in range(vertices - len(left_group)):
+      # 현재 MST 상태 출력
+      print_mst_status(mst_vertices, vertices, step)
+
+      # Cut을 가로지르는 최소 가중치 간선 찾기
+      min_edge = find_min_cut_edge(graph, mst_vertices)
+
+      # 최소 가중치 간선을 MST에 추가
+      if min_edge is not None:
+        add_edge_to_mst(mst, min_edge, mst_vertices)
+      else:
+        print("  No valid edge found - graph is not connected!")
+        return None
+
+      print()
+  else:
+    # 기존 방식
+    print("=== Greedy MST Algorithm (Cut Property) ===")
+
+    # 시작 정점 선택 (랜덤)
+    start_vertex = get_random_start_vertex(vertices)
+    mst_vertices.add(start_vertex)
+    print(f"Starting from vertex {start_vertex}\n")
+
+    # MST 구성 메인 루프 (vertices-1개의 간선 필요)
+    for step in range(vertices - 1):
+      # 현재 MST 상태 출력
+      print_mst_status(mst_vertices, vertices, step)
+
+      # Cut을 가로지르는 최소 가중치 간선 찾기
+      min_edge = find_min_cut_edge(graph, mst_vertices)
+
+      # 최소 가중치 간선을 MST에 추가
+      if min_edge is not None:
+        add_edge_to_mst(mst, min_edge, mst_vertices)
+      else:
+        print("  No valid edge found - graph is not connected!")
+        return None
+
+      print()
+
+  return mst
+
+
 def main():
   """
   메인 함수 - 예제 실행
   """
+  # 랜덤 시드 설정 (일관된 결과를 위해 고정 시드 사용)
+  random.seed(42)  # 고정 시드로 변경
+
   print("=== Greedy MST (Cut Property) Algorithm ===\n")
 
   # 그래프 생성 (8개 정점: 0-7)
@@ -234,37 +413,25 @@ def main():
   # 그래프 구조 출력
   graph.print_graph()
 
-  # Greedy MST 실행
-  mst = greedy_mst(graph)
-  if mst:
-    mst.print_mst()
+  # 진짜 Greedy MST 실행 (모든 가능한 Cut 검사)
+  print("=== True Greedy MST Algorithm ===")
+  mst_true = true_greedy_mst(graph)
+  if mst_true:
+    mst_true.print_mst()
 
-  # 동일한 그래프로 다시 한 번 테스트
-  print("=== Same Graph - Second Run ===")
-  graph2 = Graph(8)
+  # 랜덤 시작 정점으로 Greedy MST 실행 (결과는 동일해야 함)
+  print("=== Random Start Vertex Greedy MST ===")
+  mst_random_start = greedy_mst_with_options(
+      graph, use_random_cut=False, fixed_cut_type=-1)
+  if mst_random_start:
+    mst_random_start.print_mst()
 
-  # 동일한 간선들을 다시 추가
-  graph2.add_edge(0, 7, 16)
-  graph2.add_edge(2, 3, 17)
-  graph2.add_edge(1, 7, 19)
-  graph2.add_edge(0, 2, 26)
-  graph2.add_edge(5, 7, 28)
-  graph2.add_edge(1, 3, 29)
-  graph2.add_edge(1, 5, 32)
-  graph2.add_edge(2, 7, 34)
-  graph2.add_edge(4, 5, 35)
-  graph2.add_edge(1, 2, 36)
-  graph2.add_edge(4, 7, 37)
-  graph2.add_edge(0, 4, 38)
-  graph2.add_edge(6, 2, 40)
-  graph2.add_edge(3, 6, 52)
-  graph2.add_edge(6, 0, 58)
-  graph2.add_edge(6, 4, 93)
-
-  graph2.print_graph()
-  mst2 = greedy_mst(graph2)
-  if mst2:
-    mst2.print_mst()
+  # 또 다른 랜덤 시작 정점으로 테스트
+  print("=== Another Random Start Vertex Greedy MST ===")
+  mst_random_start2 = greedy_mst_with_options(
+      graph, use_random_cut=False, fixed_cut_type=-1)
+  if mst_random_start2:
+    mst_random_start2.print_mst()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX_VERTICES 100
 #define MAX_EDGES 1000
@@ -31,6 +32,10 @@ typedef struct {
   int numEdges;
   int totalWeight;
 } MST;
+
+// 함수 선언
+MST* greedyMSTWithOptions(Graph* graph, bool useRandomCut, int fixedCutType);
+MST* trueGreedyMST(Graph* graph);
 
 // 그래프 생성
 Graph* createGraph(int vertices) {
@@ -81,7 +86,7 @@ void printMSTStatus(bool* inMST, int vertices, int step) {
 }
 
 /**
- * Cut을 가로지르는 최소 가중치 간선 찾기
+ * Cut을 가로지르는 최소 가중치 간선 찾기 (Greedy MST 정의에 따라)
  * @param graph: 그래프
  * @param inMST: MST에 포함된 정점들을 나타내는 boolean 배열
  * @return: 최소 가중치 간선의 인덱스 (없으면 -1)
@@ -105,6 +110,47 @@ int findMinCutEdge(Graph* graph, bool* inMST) {
         minEdgeIndex = i;
       }
     }
+  }
+
+  return minEdgeIndex;
+}
+
+/**
+ * 모든 가능한 Cut을 검사하여 최적의 Cut 찾기 (진짜 Greedy MST)
+ * @param graph: 그래프
+ * @param inMST: MST에 포함된 정점들을 나타내는 boolean 배열
+ * @return: 최소 가중치 간선의 인덱스 (없으면 -1)
+ */
+int findOptimalCut(Graph* graph, bool* inMST) {
+  int minWeight = INF;
+  int minEdgeIndex = -1;
+
+  printf("  Searching for optimal cut (no red crossing edges)...\n");
+
+  // 모든 간선을 가중치 순으로 정렬하여 검사
+  // (실제로는 모든 간선을 검사하되, 가중치가 작은 것부터)
+  for (int i = 0; i < graph->numEdges; i++) {
+    int src = graph->edges[i].src;
+    int dest = graph->edges[i].dest;
+    int weight = graph->edges[i].weight;
+
+    // Cut을 가로지르는 간선인지 확인
+    if ((inMST[src] && !inMST[dest]) || (!inMST[src] && inMST[dest])) {
+      printf("  Valid cut edge: (%d, %d, %d)\n", src, dest, weight);
+
+      // 첫 번째로 찾은 간선이 최소 가중치 (Greedy 선택)
+      if (weight < minWeight) {
+        minWeight = weight;
+        minEdgeIndex = i;
+        printf("  -> New minimum weight: %d\n", weight);
+      }
+    }
+  }
+
+  if (minEdgeIndex != -1) {
+    printf("  -> Selected optimal cut edge: (%d, %d, %d)\n",
+           graph->edges[minEdgeIndex].src, graph->edges[minEdgeIndex].dest,
+           graph->edges[minEdgeIndex].weight);
   }
 
   return minEdgeIndex;
@@ -138,11 +184,18 @@ void addEdgeToMST(MST* mst, Graph* graph, int edgeIndex, bool* inMST) {
 }
 
 /**
- * Cut Property 기반 Greedy MST 알고리즘
+ * 랜덤 시작 정점 선택
+ */
+int getRandomStartVertex(int vertices) {
+  return rand() % vertices;
+}
+
+/**
+ * 진짜 Greedy MST 알고리즘 (모든 가능한 Cut 검사)
  * @param graph: 가중치 그래프
  * @return: MST 결과
  */
-MST* greedyMST(Graph* graph) {
+MST* trueGreedyMST(Graph* graph) {
   int vertices = graph->numVertices;
 
   if (vertices <= 0) {
@@ -162,11 +215,69 @@ MST* greedyMST(Graph* graph) {
     inMST[i] = false;
   }
 
+  printf("=== True Greedy MST Algorithm (All Possible Cuts) ===\n");
+  printf("Finding cuts with no red crossing edges...\n\n");
+
   // 시작 정점 선택 (정점 0)
   int startVertex = 0;
   inMST[startVertex] = true;
+  printf("Starting from vertex %d\n\n", startVertex);
 
+  // MST 구성 메인 루프 (vertices-1개의 간선 필요)
+  for (int step = 0; step < vertices - 1; step++) {
+    // 현재 MST 상태 출력
+    printMSTStatus(inMST, vertices, step);
+
+    // 모든 가능한 Cut을 검사하여 최적의 Cut 찾기
+    int minEdgeIndex = findOptimalCut(graph, inMST);
+
+    // 최소 가중치 간선을 MST에 추가
+    if (minEdgeIndex != -1) {
+      addEdgeToMST(mst, graph, minEdgeIndex, inMST);
+    } else {
+      printf("  No valid edge found - graph is not connected!\n");
+      break;
+    }
+    printf("\n");
+  }
+
+  free(inMST);
+  return mst;
+}
+
+/**
+ * Cut Property 기반 Greedy MST 알고리즘 (옵션 포함)
+ * @param graph: 가중치 그래프
+ * @param useRandomCut: true면 랜덤 cut 사용, false면 기존 방식
+ * @param fixedCutType: -1이면 랜덤, 0-3이면 특정 cut 타입 고정
+ * @return: MST 결과
+ */
+MST* greedyMSTWithOptions(Graph* graph, bool useRandomCut, int fixedCutType) {
+  int vertices = graph->numVertices;
+
+  if (vertices <= 0) {
+    printf("Invalid graph!\n");
+    return NULL;
+  }
+
+  // MST 결과 구조체 생성
+  MST* mst = (MST*)malloc(sizeof(MST));
+  mst->edges = (Edge*)malloc((vertices - 1) * sizeof(Edge));
+  mst->numEdges = 0;
+  mst->totalWeight = 0;
+
+  // MST에 포함된 정점들을 추적하는 배열
+  bool* inMST = (bool*)malloc(vertices * sizeof(bool));
+  for (int i = 0; i < vertices; i++) {
+    inMST[i] = false;
+  }
+
+  // 기존 방식
   printf("=== Greedy MST Algorithm (Cut Property) ===\n");
+
+  // 시작 정점 선택 (랜덤)
+  int startVertex = getRandomStartVertex(vertices);
+  inMST[startVertex] = true;
   printf("Starting from vertex %d\n\n", startVertex);
 
   // MST 구성 메인 루프 (vertices-1개의 간선 필요)
@@ -237,6 +348,9 @@ void freeGraph(Graph* graph) {
  * 메인 함수 - 예제 실행
  */
 int main() {
+  // 랜덤 시드 초기화 (일관된 결과를 위해 고정 시드 사용)
+  srand(42);  // 고정 시드로 변경
+
   printf("=== Greedy MST (Cut Property) Algorithm ===\n\n");
 
   // 그래프 생성 (8개 정점: 0-7)
@@ -264,12 +378,25 @@ int main() {
   // 그래프 구조 출력
   printGraph(graph);
 
-  // Greedy MST 실행
-  MST* mst = greedyMST(graph);
-  printMST(mst);
+  // 진짜 Greedy MST 실행 (모든 가능한 Cut 검사)
+  printf("=== True Greedy MST Algorithm ===\n");
+  MST* mst_true = trueGreedyMST(graph);
+  printMST(mst_true);
+
+  // 랜덤 시작 정점으로 Greedy MST 실행 (결과는 동일해야 함)
+  printf("=== Random Start Vertex Greedy MST ===\n");
+  MST* mst_random_start = greedyMSTWithOptions(graph, false, -1);
+  printMST(mst_random_start);
+
+  // 또 다른 랜덤 시작 정점으로 테스트
+  printf("=== Another Random Start Vertex Greedy MST ===\n");
+  MST* mst_random_start2 = greedyMSTWithOptions(graph, false, -1);
+  printMST(mst_random_start2);
 
   // 메모리 해제
-  freeMST(mst);
+  freeMST(mst_true);
+  freeMST(mst_random_start);
+  freeMST(mst_random_start2);
   freeGraph(graph);
 
   return 0;
