@@ -1,0 +1,66 @@
+/**
+ * Kruskal MST (Minimum Spanning Tree) 알고리즘 - 연결 성분 추적 기반
+ * 그래프에서 최소 신장 트리를 찾습니다.
+ * 
+ * 예제 그래프: 8개의 정점 (0-7)과 16개의 간선
+ * 간선 가중치는 이미지 표에 있는 값들을 100배로 변환한 정수값 사용
+ * 
+ * 시간 복잡도: O(E log E + V * E) - 간선 정렬 + 연결 성분 합치기
+ * 공간 복잡도: O(V + E) - 그래프 저장과 연결 성분 배열
+ */
+
+// === Kruskal MST 알고리즘 ===
+ALGORITHM KRUSKAL_MST(weighted_graph G)
+INPUT:
+    G: 연결된 가중치 그래프 (V개의 정점, E개의 간선)
+OUTPUT:
+    MST의 간선들과 총 가중치
+
+BEGIN
+    // 1. 초기화
+    MST = empty set                    // MST에 포함된 간선들
+    
+    // 2. 모든 간선을 가중치 오름차순으로 정렬
+    sorted_edges = SORT(G.edges by weight)
+    
+    // 3. 연결 성분 배열 초기화
+    FOR each vertex v in G DO
+        component[v] = v               // 각 정점을 자기 자신만의 연결 성분으로 설정
+    END FOR
+    
+    // 4. 정렬된 간선들을 순서대로 검사
+    FOR each edge (u, v, weight) in sorted_edges DO
+        // 4-1. 두 정점이 다른 연결 성분에 속하는지 확인 (사이클 검사)
+        IF component[u] ≠ component[v] THEN
+            // 4-2. 사이클이 생기지 않으므로 MST에 간선 추가
+            add (u, v, weight) to MST
+            MERGE_COMPONENTS(u, v)
+            
+            PRINT "Added edge: " + (u, v, weight)
+            
+            // 4-3. MST 완성 확인 (V-1개의 간선)
+            IF |MST| = |V| - 1 THEN
+                BREAK
+            END IF
+        ELSE
+            PRINT "Rejected edge (creates cycle): " + (u, v, weight)
+        END IF
+    END FOR
+    
+    RETURN MST
+END
+
+// === 연결 성분 관리 함수들 ===
+
+FUNCTION MERGE_COMPONENTS(vertex u, vertex v)
+BEGIN
+    old_component = component[v]
+    new_component = component[u]
+    
+    // v의 연결 성분에 속한 모든 정점을 u의 연결 성분으로 변경
+    FOR each vertex i in G DO
+        IF component[i] = old_component THEN
+            component[i] = new_component
+        END IF
+    END FOR
+END

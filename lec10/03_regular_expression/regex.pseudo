@@ -1,0 +1,331 @@
+// regex.pseudo
+
+함수 match(pattern, text):
+  시작
+    // 기본 정규식 매칭 구현
+    // 지원하는 메타 문자: '.', '*'
+    // '.': 임의의 한 문자와 매칭
+    // '*': 바로 앞 문자의 0개 이상 반복
+    
+    // 베이스 케이스: 패턴이 끝나면 성공
+    if length(pattern) == 0:
+      return true
+    
+    // 다음 문자가 '*'인 경우 (x* 패턴)
+    if length(pattern) >= 2 and pattern[1] == '*':
+      return matchStar(pattern[0], pattern[2...end], text)
+    
+    // 텍스트가 끝났는데 패턴이 남아있으면 실패
+    if length(text) == 0:
+      return false
+    
+    // 현재 문자가 일치하거나 '.'인 경우
+    if pattern[0] == text[0] or pattern[0] == '.':
+      return match(pattern[1...end], text[1...end])
+    
+    // 매칭 실패
+    return false
+  끝
+
+함수 matchStar(c, pattern, text):
+  시작
+    // c* 패턴 매칭: c 문자의 0개 이상 반복
+    // c는 '.'일 수도 있음 (모든 문자 매칭)
+    
+    // 0개 매칭 시도 (c*를 빈 문자열로 매칭)
+    if match(pattern, text) == true:
+      return true
+    
+    // 1개 이상 매칭 시도
+    while length(text) > 0 and (text[0] == c or c == '.'):
+      text = text[1...end]  // 한 문자 소비
+      if match(pattern, text) == true:
+        return true
+    
+    // 모든 경우 실패
+    return false
+  끝
+
+함수 matchHere(pattern, text):
+  시작
+    // 텍스트의 시작 부분부터 매칭 시도
+    // match 함수와 동일하지만, 이름이 더 명확함
+    return match(pattern, text)
+  끝
+
+함수 matchAnywhere(pattern, text):
+  시작
+    // 텍스트의 어느 위치에서든 패턴 매칭 시도
+    
+    // 빈 패턴은 항상 매칭
+    if length(pattern) == 0:
+      return true
+    
+    // 패턴이 '^'로 시작하면 텍스트 시작에서만 매칭
+    if pattern[0] == '^':
+      return matchHere(pattern[1...end], text)
+    
+    // 텍스트의 각 위치에서 매칭 시도
+    while length(text) >= 0:
+      if matchHere(pattern, text) == true:
+        return true
+      
+      if length(text) == 0:
+        break
+      
+      text = text[1...end]  // 다음 위치로 이동
+    
+    return false
+  끝
+
+함수 matchEnd(pattern, text):
+  시작
+    // '$' 메타문자 지원: 텍스트 끝에서만 매칭
+    
+    // 패턴이 '$'로 끝나는지 확인
+    if length(pattern) > 0 and pattern[length(pattern)-1] == '$':
+      // '$'를 제거한 패턴으로 매칭하되, 전체 텍스트를 소비해야 함
+      truncatedPattern = pattern[0...length(pattern)-2]
+      return matchExact(truncatedPattern, text)
+    else:
+      return matchAnywhere(pattern, text)
+  끝
+
+함수 matchExact(pattern, text):
+  시작
+    // 패턴과 텍스트가 정확히 일치하는지 확인
+    result = match(pattern, text)
+    
+    // 매칭이 성공했고, 패턴을 모두 소비했는지 확인
+    return result and length(getRemainingText()) == 0
+  끝
+
+함수 compilePattern(pattern):
+  시작
+    // 패턴 전처리 및 최적화 (고급 기능)
+    // 여기서는 단순히 패턴을 그대로 반환
+    return pattern
+  끝
+
+함수 validatePattern(pattern):
+  시작
+    // 패턴의 문법 오류 검사
+    
+    for i = 0 to length(pattern)-1:
+      if pattern[i] == '*':
+        if i == 0:
+          return false  // '*'가 맨 앞에 올 수 없음
+        if pattern[i-1] == '*':
+          return false  // '**' 패턴은 유효하지 않음
+    
+    return true
+  끝
+
+함수 escapeMetaChar(c):
+  시작
+    // 메타 문자를 일반 문자로 처리하기 위한 이스케이프 처리
+    if c == '.' or c == '*' or c == '^' or c == '$':
+      return '\\' + c
+    else:
+      return c
+  끝
+
+함수 countMatches(pattern, text):
+  시작
+    // 텍스트에서 패턴이 매칭되는 횟수 계산
+    count = 0
+    pos = 0
+    
+    while pos <= length(text):
+      if matchHere(pattern, text[pos...end]) == true:
+        count = count + 1
+        pos = pos + 1
+      else:
+        pos = pos + 1
+    
+    return count
+  끝
+
+함수 findMatch(pattern, text):
+  시작
+    // 매칭되는 첫 번째 위치와 길이 반환
+    
+    for pos = 0 to length(text):
+      for len = 1 to length(text) - pos + 1:
+        substring = text[pos...pos+len-1]
+        if match(pattern, substring) == true:
+          return (pos, len)  // (시작 위치, 길이) 반환
+    
+    return (-1, 0)  // 매칭 실패
+  끝
+
+함수 replaceFirst(pattern, text, replacement):
+  시작
+    // 첫 번째 매칭되는 부분을 replacement로 교체
+    
+    (pos, len) = findMatch(pattern, text)
+    
+    if pos == -1:
+      return text  // 매칭되지 않음
+    
+    before = text[0...pos-1]
+    after = text[pos+len...end]
+    
+    return before + replacement + after
+  끝
+
+함수 replaceAll(pattern, text, replacement):
+  시작
+    // 모든 매칭되는 부분을 replacement로 교체
+    
+    result = text
+    
+    while true:
+      (pos, len) = findMatch(pattern, result)
+      
+      if pos == -1:
+        break  // 더 이상 매칭되지 않음
+      
+      before = result[0...pos-1]
+      after = result[pos+len...end]
+      result = before + replacement + after
+    
+    return result
+  끝
+
+// 확장 기능: 문자 클래스 지원 [abc], [a-z] 등
+함수 matchCharClass(charClass, c):
+  시작
+    // [abc] 형태의 문자 클래스 매칭
+    // 단순화된 구현
+    
+    if charClass == "[abc]":
+      return c == 'a' or c == 'b' or c == 'c'
+    
+    if charClass == "[0-9]":
+      return c >= '0' and c <= '9'
+    
+    if charClass == "[a-z]":
+      return c >= 'a' and c <= 'z'
+    
+    if charClass == "[A-Z]":
+      return c >= 'A' and c <= 'Z'
+    
+    return false
+  끝
+
+// 성능 측정 및 디버깅 함수들
+함수 matchWithStats(pattern, text):
+  시작
+    // 매칭 과정의 통계 정보와 함께 반환
+    
+    startTime = getCurrentTime()
+    recursionDepth = 0
+    comparisons = 0
+    
+    result = match(pattern, text)  // 실제 매칭 수행
+    
+    endTime = getCurrentTime()
+    
+    stats = {
+      "result": result,
+      "executionTime": endTime - startTime,
+      "recursionDepth": recursionDepth,
+      "comparisons": comparisons
+    }
+    
+    return stats
+  끝
+
+// 메인 테스트 함수
+함수 main():
+  시작
+    print "=== 정규식 매칭 알고리즘 테스트 ==="
+    print ""
+    
+    // 기본 테스트 케이스들
+    testCases = [
+      ("abc", "abc", true),           // 정확한 매칭
+      ("a.c", "abc", true),           // '.' 메타문자
+      ("a.c", "adc", true),           // '.' 메타문자
+      ("a.c", "ac", false),           // '.'는 반드시 한 문자 매칭
+      ("a*", "", true),               // '*' 0개 매칭
+      ("a*", "a", true),              // '*' 1개 매칭
+      ("a*", "aaa", true),            // '*' 여러 개 매칭
+      ("a*b", "aaab", true),          // '*' + 다른 문자
+      (".*", "anything", true),       // '.*'는 모든 문자열 매칭
+      ("^hello", "hello world", true), // '^' 시작 매칭
+      ("world$", "hello world", true), // '$' 끝 매칭
+      ("ca*t", "ct", true),           // 'a*' 0개 매칭
+      ("ca*t", "cat", true),          // 'a*' 1개 매칭
+      ("ca*t", "caaaat", true)        // 'a*' 여러 개 매칭
+    ]
+    
+    print "=== 기본 매칭 테스트 ==="
+    for each (pattern, text, expected) in testCases:
+      result = match(pattern, text)
+      status = if result == expected then "PASS" else "FAIL"
+      print "패턴: '" + pattern + "', 텍스트: '" + text + "' -> " + result + " (" + status + ")"
+    print ""
+    
+    // 실제 사용 예시들
+    print "=== 실제 사용 예시 ==="
+    
+    // 이메일 패턴 (단순화)
+    emailPattern = ".*@.*\\..*"
+    emails = ["user@example.com", "test@test", "invalid-email"]
+    
+    print "이메일 검증 (패턴: " + emailPattern + "):"
+    for each email in emails:
+      isValid = matchAnywhere(emailPattern, email)
+      print "  " + email + " -> " + isValid
+    print ""
+    
+    // 전화번호 패턴
+    phonePattern = "[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]"
+    phones = ["123-4567", "abc-defg", "123-456"]
+    
+    print "전화번호 검증 (패턴: " + phonePattern + "):"
+    for each phone in phones:
+      isValid = matchAnywhere(phonePattern, phone)
+      print "  " + phone + " -> " + isValid
+    print ""
+    
+    // 문자열 치환 예시
+    print "=== 문자열 치환 예시 ==="
+    text = "Hello world, world is beautiful"
+    pattern = "world"
+    replacement = "universe"
+    
+    firstReplaced = replaceFirst(pattern, text, replacement)
+    allReplaced = replaceAll(pattern, text, replacement)
+    
+    print "원본: " + text
+    print "첫 번째 치환: " + firstReplaced
+    print "모든 치환: " + allReplaced
+    print ""
+    
+    // 성능 테스트
+    print "=== 성능 테스트 ==="
+    longText = "a" * 1000 + "b"
+    complexPattern = "a*b"
+    
+    stats = matchWithStats(complexPattern, longText)
+    print "패턴: " + complexPattern
+    print "텍스트 길이: " + length(longText)
+    print "결과: " + stats.result
+    print "실행 시간: " + stats.executionTime + "ms"
+    print "비교 횟수: " + stats.comparisons
+    print ""
+    
+    // 에러 케이스 테스트
+    print "=== 에러 케이스 테스트 ==="
+    invalidPatterns = ["*abc", "a**", ""]
+    
+    for each pattern in invalidPatterns:
+      isValid = validatePattern(pattern)
+      print "패턴: '" + pattern + "' -> 유효성: " + isValid
+    print ""
+    
+    print "테스트 완료"
+  끝
